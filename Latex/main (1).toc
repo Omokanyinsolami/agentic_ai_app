@@ -1,0 +1,52 @@
+\babel@toc {english}{}\relax 
+\contentsline {section}{\numberline {1}Introduction}{3}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Project Background}{3}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Project Motivation}{3}{subsection.1.2}%
+\contentsline {subsection}{\numberline {1.3}Research Questions and Hypothesis}{4}{subsection.1.3}%
+\contentsline {section}{\numberline {2}Description of the Project}{4}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Problem Statement}{4}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Project Goal and Objectives}{5}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Project Deliverables and Milestones}{5}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}Project Roadmap}{6}{subsection.2.4}%
+\contentsline {section}{\numberline {3}Literature Review}{6}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Agentic AI and Autonomous Agents}{6}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Planning and Scheduling Algorithms for Intelligent Agents}{7}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}LLM-Based and Tool-Using Agent Frameworks}{7}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}Intelligent Scheduling and Study Planning Systems}{8}{subsection.3.4}%
+\contentsline {subsubsection}{\numberline {3.4.1}Critical Gaps Identified}{8}{subsubsection.3.4.1}%
+\contentsline {section}{\numberline {4}Project Methods}{9}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Project Type}{9}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Requirements Elicitation and Definition}{9}{subsection.4.2}%
+\contentsline {subsubsection}{\numberline {4.2.1}Scenario Definitions:}{9}{subsubsection.4.2.1}%
+\contentsline {subsubsection}{\numberline {4.2.2}Functional Requirements:}{9}{subsubsection.4.2.2}%
+\contentsline {subsubsection}{\numberline {4.2.3}Non-Functional Requirements:}{10}{subsubsection.4.2.3}%
+\contentsline {subsection}{\numberline {4.3}Design: Agent Architecture}{10}{subsection.4.3}%
+\contentsline {subsubsection}{\numberline {4.3.1}Perception Module:}{10}{subsubsection.4.3.1}%
+\contentsline {subsubsection}{\numberline {4.3.2}Internal Representation:}{10}{subsubsection.4.3.2}%
+\contentsline {subsubsection}{\numberline {4.3.3}Planning Module (core Component:}{11}{subsubsection.4.3.3}%
+\contentsline {subsubsection}{\numberline {4.3.4}Action/Output Module:}{11}{subsubsection.4.3.4}%
+\contentsline {subsubsection}{\numberline {4.3.5}Implementation Framework Selection:}{11}{subsubsection.4.3.5}%
+\contentsline {subsection}{\numberline {4.4}Experimental Design:}{11}{subsection.4.4}%
+\contentsline {subsubsection}{\numberline {4.4.1}Evaluation Metrics:}{12}{subsubsection.4.4.1}%
+\contentsline {subsubsection}{\numberline {4.4.2}Comparative Evaluation:}{12}{subsubsection.4.4.2}%
+\contentsline {subsubsection}{\numberline {4.4.3}Baseline Comparison:}{12}{subsubsection.4.4.3}%
+\contentsline {subsubsection}{\numberline {4.4.4}Experimental Protocol:}{12}{subsubsection.4.4.4}%
+\contentsline {subsection}{\numberline {4.5}Evaluation Methodology}{12}{subsection.4.5}%
+\contentsline {subsubsection}{\numberline {4.5.1}Stage 1: Unit Testing}{13}{subsubsection.4.5.1}%
+\contentsline {subsubsection}{\numberline {4.5.2}Stage 2: Pilot Experiments}{13}{subsubsection.4.5.2}%
+\contentsline {subsubsection}{\numberline {4.5.3}Stage 3: Systematic Evaluation}{13}{subsubsection.4.5.3}%
+\contentsline {section}{\numberline {5}Project Scheduling and Risk Management}{13}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Project Schedule (Gantt Chart)}{13}{subsection.5.1}%
+\contentsline {subsubsection}{\numberline {5.1.1}Detailed Weekly Breakdown:}{14}{subsubsection.5.1.1}%
+\contentsline {subsection}{\numberline {5.2}Risk Register and Risk Matrix}{14}{subsection.5.2}%
+\contentsline {subsubsection}{\numberline {5.2.1}Implementation Complexity Exceeds Timeline}{14}{subsubsection.5.2.1}%
+\contentsline {subsubsection}{\numberline {5.2.2}Difficulty in Obtaining Meaningful Evaluation Metrics:}{15}{subsubsection.5.2.2}%
+\contentsline {subsubsection}{\numberline {5.2.3}Technical dependencies and Library Issues:}{15}{subsubsection.5.2.3}%
+\contentsline {subsubsection}{\numberline {5.2.4}Scope Creep:}{15}{subsubsection.5.2.4}%
+\contentsline {subsubsection}{\numberline {5.2.5}Insufficient Experimental Scenario:}{16}{subsubsection.5.2.5}%
+\contentsline {subsubsection}{\numberline {5.2.6}Non-Deterministic Behaviour Complicates Evaluation:}{16}{subsubsection.5.2.6}%
+\contentsline {subsubsection}{\numberline {5.2.7}Time Constraints for Full Comparative Evaluation:}{16}{subsubsection.5.2.7}%
+\contentsline {section}{\numberline {6}Outlook}{17}{section.6}%
+\contentsline {section}{References}{19}{Item.154}%
+\contentsline {section}{Appendix}{19}{section*.3}%
+\contentsline {subsection}{\numberline {.1}Gantt Chart}{19}{subsection.Alph0.1}%

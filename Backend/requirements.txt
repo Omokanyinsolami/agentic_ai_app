@@ -1,0 +1,8 @@
+flask
+flask-cors
+psycopg2-binary
+python-dotenv
+typing_extensions
+langchain-core
+langgraph
+gunicorn

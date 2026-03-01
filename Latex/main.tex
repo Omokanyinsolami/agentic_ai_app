@@ -1,0 +1,700 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+\usepackage[english]{babel}
+%\usepackage{natbib}
+\usepackage{subfiles}
+\usepackage{subcaption}
+\usepackage{url}
+\usepackage{hyperref}
+%\usepackage[utf8x]{inputenc}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\graphicspath{{images/}}
+\usepackage[export]{adjustbox}
+%\usepackage{parskip}
+\usepackage{fancyhdr}
+\usepackage{vmargin}
+\usepackage{pgfgantt}
+\usetikzlibrary{calendar}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage[table]{xcolor}
+\usepackage{booktabs}
+\usepackage{newunicodechar}
+\newunicodechar{̈}{"{}}
+
+\usetikzlibrary{positioning, shapes}
+\setmarginsrb{3 cm}{2.5 cm}{3 cm}{2.5 cm}{1 cm}{1.5 cm}{1 cm}{1.5 cm}
+
+\usepackage{csquotes}% Recommended
+
+\usepackage[style=authoryear-ibid,backend=biber]{biblatex}
+
+\addbibresource{references.bib}% Syntax for version >= 1.2
+
+\title{Design and evaluation of an Agentic AI Study Planner for Managing University Coursework and Deadlines}	% Title
+\author{Eberenna Peter Nwachukwu}		% Author
+\date{\today}	% Date
+
+\makeatletter
+\let\thetitle\@title
+\let\theauthor\@author
+\let\thedate\@date
+\makeatother
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\theauthor}
+\lhead{\thetitle}
+\cfoot{\thepage}
+
+\begin{document}
+
+\begin{titlepage}
+	\centering
+    \vspace*{0.5 cm}
+    % \includegraphics[scale = 0.1]{newlogo.png}\\[1.0 cm] % Logo file not found - uncomment when available
+    \textsc{\LARGE School of Science and Engineering}\\[2.0 cm]	
+	\textsc{\Large Data Ethics and Research Methods}\\[0.5 cm]		
+	\textsc{\large Coursework 2: Research Project Proposal}\\[0.5 cm]
+	\rule{\linewidth}{0.2 mm} \\[0.4 cm]
+	{ \huge \bfseries \thetitle}\\
+	\rule{\linewidth}{0.2 mm} \\[1.5 cm]
+	
+	\begin{minipage}{0.4\textwidth}
+		\begin{flushleft} \large
+			\emph{Author:}\\
+			\theauthor
+			\end{flushleft}
+			\end{minipage}~
+			\begin{minipage}{0.4\textwidth}
+			\begin{flushright} \large
+			\emph{Student Number:} \\
+			S2550239		% Your Student Number
+		\end{flushright}
+	\end{minipage}\\[2 cm]
+	
+%	{\large \thedate}\\[2 cm]
+ 
+	\vfill
+	
+\end{titlepage}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\section*{Abstract}
+Agentic AI systems are characterised by autonomous planning, tool use, and iterative reasoning capabilities. They represent an important area of research in artificial intelligence. This proposal outlines a research project to design and evaluate a prototypical agentic AI study planner system. The project addresses the technical challenge of creating an autonomous agent capable of dynamic task scheduling under complex constraints, using study planning as a motivating use case to demonstrate and evaluate core agentic capabilities. The primary aim is to develop a functional prototype that showcases agentic AI planning and scheduling mechanisms and to conduct an  an experimental evaluation of alternative planning approaches or agent frameworks. The system will be designed to autonomously generate feasible weekly schedules, handle deadline constraints, manage time allocations, and adapt to changing requirements through iterative planning cycles. The research uses a design-and-implementation methodology. It begins with an architectural specification of an agentic planner, followed by prototype development using appropriate frameworks (e.g., LLM-based agent toolkits or custom planning algorithms) and systematic experimental evaluation. The evaluation will assess the feasibility of the schedule, robustness to changes, computational efficiency, and comparative performance with baseline scheduling methods. This provides a comprehensive assessment of the system’s capabilities. Expected contributions include insights into the practical feasibility of agent-based AI for constraint-based scheduling, identification of limitations in current planning approaches, and empirical comparison of different agent architectures or planning strategies. The work provides a foundation for understanding how autonomous agents can handle structured, multi-constraint planning problems. 
+\newline
+\textbf{Keywords:} 
+Agentic AI, autonomous agents, study planning, task scheduling, LLM-based agents, planning algorithms, prototype evaluation, constraint-based scheduling
+
+\vfill
+"Except where explicitly stated all work in this document is my own"
+
+\vspace{5mm}
+
+\begin{minipage}{0.4\textwidth}
+		\begin{flushleft} 
+			Name: \\
+			\ Eberenna Peter Nwachukwu
+			\end{flushleft}
+			\end{minipage}~
+			\begin{minipage}{0.4\textwidth}
+			\begin{flushright} 
+			Date: \\
+			December 3, 2025								% Date of declaration
+		\end{flushright}
+	\end{minipage}\\[2 cm]
+
+\newpage
+\tableofcontents
+
+\newpage
+
+\section{Introduction}
+
+\subsection{Project Background}
+Agentic AI is an emerging paradigm in artificial intelligence that refers to autonomous systems capable of pursuing complex goals with limited human oversight \parencite{10849561}. Unlike traditional rule-based systems, agentic AI systems can dynamically reason about their environment, formulate plans, execute actions, and refine their strategies based on feedback and changing conditions. These systems typically integrate large language models (LLMs) with planning modules, external tool interfaces, and memory mechanisms to achieve goal-directed behaviour \parencite{hughes2025ai}.
+
+Study planning and coursework management present an interesting domain for exploring agent-based artificial intelligence capabilities. Students must balance multiple assignments, deadlines, and time constraints while adapting to new tasks and changing priorities. Although this context provides a concrete scenario for evaluation, the primary research focus is on the technical capabilities of agentic AI systems rather than on solving real-world student workload problems. The study planning domain serves as a well-defined test-bed for evaluating how autonomous agents handle constraint satisfaction, dynamic replanning, and multi-objective optimisation.
+\subsection{Project Motivation}
+Current approaches to task scheduling, such as static to-do lists or simple calendar applications, lack the autonomous reasoning and adaptive planning capabilities that characterise agentic AI systems \parencite{chen2023survey}. From a research perspective, understanding how agentic architectures can effectively generate and maintain feasible schedules under constraints is an important technical question. This project is motivated by several research gaps:
+
+First, there is limited empirical evaluation of how agentic AI systems perform in realistic constraint-based scheduling scenarios. Although planning algorithms have been extensively studied in classical AI, their integration with modern LLM-based agent frameworks and their performance in dynamic, user-constrained environments remain under-explored.
+
+Second, the relative effectiveness of different agent architectures, such as rule-based planners, LLM-driven planning loops, and hybrid approaches, has not been systematically compared in scheduling contexts.
+Understanding the trade-offs between explainability, computational efficiency, and solution quality is important to advance agentic AI research.
+
+Third, the robustness of agentic planners to changing requirements, conflicting constraints, and incomplete information represents a fundamental challenge that warrants empirical investigation. A prototypical study planner provides a controlled environment to explore these issues.
+
+\subsection{Research Questions and Hypothesis}
+The project addresses the following research questions:
+\begin{enumerate}
+\item How effectively can a prototypical agentic AI study planner generate feasible weekly schedules under typical student constraints (deadlines, daily hour limits, task dependencies)?
+
+\item How does an agentic AI planner compare to a baseline rule-based scheduler in terms of schedule feasibility, flexibility, and computational efficiency?
+
+\item How do different planning approaches or agent frameworks (e.g., LLM-based planning loops versus constraint-based algorithms) affect the performance, explainability, and robustness of the study planner?
+
+\item To what extent can an agentic planner adaptively reschedule tasks when new assignments are introduced or existing deadlines change?
+\end{enumerate}
+
+The following hypotheses are proposed:
+
+\begin{enumerate}
+    \item An agentic AI planner will generate schedules with higher feasibility rates (fewer constraint violations) compared to a simple rule-based baseline when handling complex, multi-constraint scenarios.
+    \item LLM-based planning approaches will demonstrate greater flexibility in handling novel constraint combinations but may exhibit lower computational efficiency compared to algorithmic planners.
+\end{enumerate}
+
+
+
+\section{Description of the Project}
+\subsection{Problem Statement}
+The core research problem is to design and evaluate a prototypical agentic AI system capable of autonomous dynamic task scheduling under multiple constraints. The system must demonstrate key agentic capabilities: perceiving task requirements and constraints, reasoning about feasible schedule configurations, generating and executing planning decisions, and adapting to environmental changes through iterative replanning.
+
+The study planning domain provides a structured use case with well-defined constraints (deadlines, time budgets, task dependencies) that enables controlled evaluation of agentic planning mechanisms. This project is not framed as a real-world application study. Instead, the study planning context serves as a concrete test-bed for demonstrating and evaluating core agentic AI technologies. The focus is on understanding how autonomous agents handle constraint-based planning, not on deploying a production system for student use.
+\subsection{Project Goal and Objectives}
+\begin{enumerate}
+    \item \textbf{Project Goal}: Design, implement, and experimentally evaluate a prototypical agentic AI study planner that demonstrates autonomous scheduling capabilities and provides insight into the effectiveness of different agentic planning approaches
+    \item \textbf{Specific Objectives}:
+    \begin{enumerate}
+        \item specify a comprehensive agent architecture for a study planner that integrates perception, planning, and action modules, capable of generating autonomous schedules and adaptive rescheduling.
+        \item develop a functional prototype of the agentic planner using an appropriate framework(e.g., an LLM-based agent toolkit such as LangChain or AutoGPT, or a custom planning algorithm implementation).
+        \item design and implement experimental scenarios that systematically test the planner's performance under varying constraint configurations, including different numbers of tasks, deadline distributions, and time budget constraints.
+        \item  conduct a comparative evaluation of alternative planning strategies or agent frameworks, assessing the trade-off on feasibility, efficiency, explainability, and robustness.
+        \item  analyse and document the strengths, limitations, and failure modes of the prototypical system, identifying key insights for future agentic AI research.
+        \item  produce a comprehensive research report documenting the design, implementation, evaluation, methodology, results, and contributions.
+    \end{enumerate}
+\end{enumerate}
+\subsection{Project Deliverables and Milestones}
+    \begin{enumerate}
+        \item \textbf{Deliverables}
+        \begin{enumerate}
+            \item Conceptual Architecture Document: Detailed specification of the agent architecture, including component descriptions, data flows, and planning mechanisms.
+            \item Implementation of the prototype: Functional code base that implements the agentic planner with core scheduling capabilities.
+            \item Experimental Design and Results: Results of the systematic evaluation that include performance metrics, comparative analyses, and identified limitations.
+            \item Final Research Report: Comprehensive documentation of the project, including review of the literature, methods, results, analysis, and conclusions.
+        \end{enumerate}
+    \end{enumerate}
+
+\subsection{Project Roadmap}
+The project will proceed through six main phases: Literature review and requirements, architecture design, prototype implementation , experimental design, and pilot testing. main experiments and analysis, and report writing. A detailed project schedule with weekly breakdown is provided in Section~\ref{proj_sched_risk_mgt}
+\section{Literature Review}
+\subsection{Agentic AI and Autonomous Agents}
+The field has seen significant development in recent years, with various definitions and conceptualisations emerging. Recent research by \textcite{sapkota2025ai} and \textcite{schneider2025generative} provides detailed conceptual frameworks distinguishing AI agents from agentic AI and explores the transition from generative AI to more autonomous agentic systems.
+\textcite{bandi2025rise} offer a comprehensive review of agentic AI, examining definitions, frameworks, architectures, applications, evaluation metrics, and challenges. Their work identifies key characteristics of agentic systems: autonomous decision-making, tool use, iterative reasoning, and adaptive behaviour. \textcite{pati2025agentic} provide a broad survey of agentic AI technologies, applications, and social implications, emphasising the multi-faceted nature of these systems.
+A key characteristic of agentic AI is iterative reasoning. Agents can reflect on their actions, receive feedback, and refine their plans \parencite{wang2024survey}. This capability is relevant for scheduling problems, where initial plans may need adjustment based on new information or restrictions. However, current agentic systems often struggle to maintain consistency in planning iterations and handle conflicting information \parencite{murugesan2025rise}
+The literature reveals a gap in empirical evaluation of agentic AI systems for structured planning problems. While many frameworks exist( e.g. AutoGPT, LangChain agents, ReAct-style systems), their performance in constraint-based scheduling scenarios has not been systematically examined. \parencite{brohi2025research} mapped the research landscape of agentic AI and large language models, identifying applications and future directions, but noted limited evaluation in constrained planning domains. This project addresses this gap by providing empirical evaluation in a controlled scheduling domain.
+\subsection{Planning and Scheduling Algorithms for Intelligent Agents}
+Classical AI planning algorithms, including STRIPS-style planners, hierarchical task network (HTN) planners, and constraint-based approaches, have been extensively studied in the automated planning literature \parencite{geffner2013concise,ghallab2016automated}. These methods are effective in generating feasible plans under well-defined constraints, but typically assume a fully specified, static, and deterministic environment, which limits their robustness in dynamic or partially observable settings \parencite{novak2011agents,bidoux2017use}.
+
+Modern agentic systems increasingly use LLM-based planning, where language models generate action sequences through iterative prompting \parencite{sun2023adaplanner}. ReAct frameworks (Reasoning and Acting) combine reasoning traces with tool use, allowing agents to plan and execute interleaved \parencite{yao2022react}. However, LLM-based planning can be computationally expensive, non-deterministic, and difficult to verify accuracy \parencite{aghzal2025survey}\parencite{katz2024thought}\parencite{lee2025veriplan}. This presents challenges for reliable scheduling applications. 
+Self-evolving AI agents represent an advanced category of agentic systems that can adapt and improve their planning capabilities over time. \parencite{fang2025comprehensive} surveyed self-evolving agents, examining how these systems can modify their architectures and strategies based on experience. Although promising, these approaches introduce additional complexity and evaluation challenges.
+Hybrid approaches that combine algorithmic planning with LLM-based reasoning show promise but are still under exploration. For scheduling problems specifically, there is limited research that systematically compares the effectiveness of different planning paradigms within agentic architectures. This project contributes by empirically evaluating alternative planning approaches in a concrete scheduling context.
+
+
+\subsection{LLM-Based and Tool-Using Agent Frameworks}
+
+Frameworks such as LangChain, AutoGPT, and BabyAGI provide infrastructure to build LLM-based agents with planning capabilities \parencite{chase2022langchain}. These frameworks typically implement planning loops where agents: 
+\begin{enumerate}
+    \item observe the current state
+    \item reason about goals and constraints
+    \item execute actions using tools
+    \item update state based on outcomes
+\end{enumerate}
+
+A limitation of current LLM-based planning is the absence of rigorous formal constraint handling. Although LLMs can generate plausible plans, they can breach hard constraints or yield infeasible schedules. Exploring ways to integrate formal constraint checking with LLM-based reasoning therefore represents an important research direction. \parencite{aghzal2025survey}
+
+The explainability of LLM-based planning also remains a challenge. It is often difficult for users to understand why an agent selected a particular plan or scheduling decision when the underlying reasoning is distributed across high-dimensional neural network activations rather than explicit symbolic structures. Recent work on the governance of agentic AI systems stresses the importance of the legibility of agent activity, including making agents’ actions and internal reasoning observable to users and recognising the limitations of existing transparency mechanisms \parencite{shavit2023practices}. Based on these concerns, this project will investigate methods to improve the transparency and auditability of LLM-based planning decisions.
+
+\subsection{Intelligent Scheduling and Study Planning Systems}
+
+Existing intelligent scheduling systems, such as AI-powered calendar applications, typically use rule-based or machine learning approaches for optimisation \parencite{chen2023survey}. However, these systems rarely exhibit true agentic autonomy. They typically require explicit user input for each decision rather than autonomously generating and maintaining schedules.
+
+Research on intelligent tutoring systems and educational planning has explored automated schedule generation, but these systems are typically not framed as agentic AI research \parencite{koedinger2010data}. The gap between educational scheduling research and agentic AI research provides an opportunity for this project to contribute new insights.
+\subsubsection{Critical Gaps Identified}
+\begin{enumerate}
+    \item Limited empirical evaluation of agentic planners in realistic constraints-based scheduling scenarios with systematic performance metrics.
+    \item Lack of comparative studies between rule-based, LLM-based, and hybrid planning approaches within agentic architectures.
+    \item Insufficient understanding of how agentic systems handle conflicting constraints and dynamic replacement in scheduling contexts.
+    \item Absence of frameworks that combine the flexibility of LLM-based reasoning with the reliability of formal constraint satisfaction.
+\end{enumerate}
+This project addresses these gaps by providing systematic empirical evaluation and comparative analysis of agentic planning approaches in a controlled scheduling domain. The study planning context offers a structured environment for this evaluation.
+
+\section{Project Methods}
+\subsection{Project Type}
+This project is framed as a design-and-implementation study of a prototypical agentic AI system, combined with experimental evaluation and comparison of core agentic technologies or frameworks. The project does not adopt a focus on real-world applications as its primary classification. While the study planning domain provides a concrete use case, the research emphasis is on understanding and evaluating agentic AI capabilities rather than deploying a production system for real-world student use.
+
+The project involves both system design and implementation and the experimental comparison of alternative planning approaches or agent frameworks. This provides contributions to agentic AI research through the development and evaluation of a prototypical system.
+
+\subsection{Requirements Elicitation and Definition}
+
+Requirements will be defined through scenario-based specification and analysis of agentic planning needs:
+
+\subsubsection{Scenario Definitions:}
+\begin{enumerate}
+    \item Weekly planning scenarios with 5-15 tasks
+    \item Task attributes: deadline, estimated duration, priority, dependencies
+    \item Constraints: maximum daily study hours (e.g., 8 hours), minimum break requirements, preferred time slots
+    \item Dynamic scenarios: introduction of new tasks mid-week, deadline changes, task cancellation
+\end{enumerate}
+
+
+\subsubsection{Functional Requirements:}
+\begin{enumerate}
+    \item The agent must autonomously generate a feasible weekly schedule with respect to all hard constraints (deadlines, daily hour limits).
+    \item The agent must be able to reschedule existing tasks when new tasks are introduced or constraints change.
+    \item The agent must handle task dependencies (e.g., task B cannot start until task A is completed).
+    \item The agent must provide explanations for scheduling decisions (e.g., why a task was scheduled at a particular time).
+\end{enumerate}
+
+\subsubsection{Non-Functional Requirements:}
+\begin{enumerate}
+    \item The scheduling process should be completed in a reasonable time (less than five minutes for typical scenarios).
+    \item The system should be transparent about constraint violations or infeasible scenarios
+    \item The architecture should be modular to allow for comparison of different planning modules.
+\end{enumerate} 
+\subsection{Design: Agent Architecture}
+The proposed agent architecture consists of four main components:
+\subsubsection{Perception Module:}
+\begin{enumerate}
+    \item Input interface to receive task specifications, deadlines, and constraints.
+    \item State representation: current schedule, remaining tasks, constraint status.
+    \item  Change detection: identifies when new tasks are added or constraints modified.
+\end{enumerate}
+\subsubsection{Internal Representation:}
+\begin{enumerate}
+    \item Data Structures for tasks (attributes, dependencies, status)
+    \item Constraint model (deadlines, time budgets, preferences).
+    \item Schedule state (allocated time slots, assigned tasks).
+\end{enumerate}
+
+\subsubsection{Planning Module (core Component:}
+\begin{enumerate}
+    \item Option A (LLM-bsed): Iterative planning loop using LLM prompts to generate schedule steps, with constraint checking at each iteration.
+    \item Option B (Algorithmic): Constraint-based scheduling algorithm (e.g., greedy heuristic with backtracking, CSP solver).
+    \item Option C (Hybrid): LLM generates the high-level plan structure, the algorithmic module refines, and validates the constraints.
+The planning module will be designed to be swappable, allowing for a comparative evaluation of different planning approaches.
+\end{enumerate}
+\subsubsection{Action/Output Module:}
+\begin{enumerate}
+    \item Schedule generation: produces time-allocated task assignments.
+    \item Explanation generation: provides reasoning traces for scheduling decisions.
+    \item Update mechanism: modifies existing schedule when replanning is triggered.
+\end{enumerate}
+\subsubsection{Implementation Framework Selection:}
+The prototype will be developed in Python, potentially using:
+\begin{enumerate}
+    \item LangChain or similar framework for LLM-based agent components
+    \item Custom Python implementation for algorithmic planning modules
+    \item Constraint satisfaction libraries (e.g., python-constraint) if needed
+\end{enumerate}
+\subsection{Experimental Design:}
+\begin{enumerate}
+    \item Scenario Set 1 (Simple): 5-7 tasks, no dependencies, uniform deadlines
+    \item Scenario Set 2 (Moderate): 10-12 tasks, some dependencies, varied deadlines
+    \item Scenario Set 3 (Complex): 15+ tasks, multiple dependencies, tight deadlines, conflicting constraints
+    \item Dynamic Scenarios: Introduction of 2-3 new tasks to existing schedules
+\end{enumerate}
+\subsubsection{Evaluation Metrics:}
+\begin{enumerate}
+    \item Feasibility Rate: Percentage of generated schedules that satisfy all hard constraints
+    \item Constraint Violations: Count and severity of violations (deadline misses, hour limit exceedances)
+    \item Computational Efficiency: Time to generate schedule (Seconds)
+    \item Robustness: Ability to successfully reschedule when new tasks are introduced (success rate)
+    \item Schedule Quality: Heuristic measures such as deadline buffer time, distribution of work hours
+\end{enumerate}
+\subsubsection{Comparative Evaluation:}
+If multiple planning approaches are implemented:
+\begin{enumerate}
+    \item Direct comparison of feasibility rates, efficiency, and robustness
+    \item Qualitative analysis of explainability and failure modes
+    \item Statistical analysis of performance differences across scenario sets
+\end{enumerate}
+\subsubsection{Baseline Comparison:}
+\begin{enumerate}
+    \item Baseline 1: Simple rule-based scheduler (earliest deadline first, fill available hours)
+    \item Baseline 2: Manual schedule (designed by humans for comparison scenarios)
+\end{enumerate}
+\subsubsection{Experimental Protocol:}
+\begin{enumerate}
+    \item Each scenario will be evaluated 10 times to account for non-determinism (if applicable)
+    \item  The results will be aggregated and statistically analysed
+    \item Failure cases will be qualitatively documented and analysed.
+\end{enumerate}
+\subsection{Evaluation Methodology}
+
+The evaluation will proceed through three stages:
+
+\subsubsection{Stage 1: Unit Testing}
+\begin{enumerate}
+    \item Individual component testing (constraint checking, task representation, etc.)
+    \item Validation of core functionality before integration
+\end{enumerate}
+\subsubsection{Stage 2: Pilot Experiments}
+\begin{enumerate}
+    \item Small-scale scenario testing (5-10 scenarios)
+    \item Refinement of metrics and experimental protocol
+    \item Identification of implementation issues
+\end{enumerate}
+\subsubsection{Stage 3: Systematic Evaluation}
+\begin{enumerate}
+    \item Execution of the full scenario set
+    \item Comparative analysis (if multiple approaches are implemented)
+    \item Statistical analysis of results
+    \item Qualitative analysis of failure modes and edge cases
+\end{enumerate}
+Success criteria include:
+\begin{enumerate}
+    \item The prototype successfully generates feasible schedules for at least 80\% of simple and moderate scenarios.
+    \item Clearly demonstrates advantages or trade-offs compared to the baseline approaches.
+    \item Provides insights into agentic planning capabilities and limitations.
+\end{enumerate}
+
+\section{Implementation}
+\label{sec:implementation}
+
+This section describes the implementation of the Agentic AI Academic Task Manager prototype, including the framework evaluation process, technology selection rationale, and system architecture.
+
+\subsection{Framework Evaluation and Selection}
+
+Three leading agentic AI frameworks were evaluated to determine the most suitable foundation for the academic task management system: AutoGen \parencite{autogen2023}, CrewAI \parencite{crewai2024}, and LangGraph \parencite{langgraph2024}.
+
+\subsubsection{AutoGen (Microsoft)}
+AutoGen provides multi-agent conversation capabilities, enabling collaborative AI tasks through agent-to-agent communication. The framework was tested with a minimal implementation comprising an AssistantAgent and UserProxyAgent. While AutoGen excels at conversational AI workflows, it demonstrated several limitations for our use case:
+\begin{itemize}
+    \item Heavy dependency on external LLM APIs for all operations
+    \item Complex configuration requirements for simple, structured workflows
+    \item Architecture optimised for conversations rather than state management
+\end{itemize}
+\textbf{Verdict:} Not selected---designed primarily for multi-agent conversations rather than structured CRUD operations.
+
+\subsubsection{CrewAI}
+CrewAI implements a role-based agent design where agents are assigned specific roles, goals, and backstories. The framework provides good abstraction for team-like AI workflows. Testing revealed:
+\begin{itemize}
+    \item Requires LLM API calls for every operation, increasing costs
+    \item Role-based paradigm does not align well with task management workflows
+    \item Steeper learning curve for straightforward database operations
+\end{itemize}
+\textbf{Verdict:} Not selected---role-based model does not fit CRUD-centric task management.
+
+\subsubsection{LangGraph (Selected Framework)}
+LangGraph \parencite{langgraph2024}, developed by LangChain AI, provides a graph-based approach to building stateful, multi-actor applications. The framework was evaluated with a state-driven workflow implementation using TypedDict for state management and conditional edges for routing. Key advantages identified:
+\begin{itemize}
+    \item Explicit state management with TypedDict enables type-safe operations
+    \item Graph-based workflow design provides clear, deterministic routing
+    \item Conditional edges support dynamic decision-making without LLM overhead
+    \item Direct database integration is straightforward
+    \item Core operations function without requiring LLM API calls
+\end{itemize}
+\textbf{Verdict:} Selected---best fit for structured, state-driven task management with cost efficiency.
+
+\subsection{Framework Comparison Summary}
+
+Table~\ref{tab:framework_comparison} summarises the comparative evaluation of the three frameworks.
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{Criteria} & \textbf{AutoGen} & \textbf{CrewAI} & \textbf{LangGraph} \\
+\hline
+State Management & Limited & Limited & Excellent \\
+\hline
+LLM Dependency & High & High & Optional \\
+\hline
+Workflow Control & Conversational & Role-based & Graph-based \\
+\hline
+Database Integration & Complex & Complex & Simple \\
+\hline
+Cost Efficiency & Low & Low & High \\
+\hline
+CRUD Suitability & Poor & Poor & Excellent \\
+\hline
+\end{tabular}
+\caption{Framework comparison for academic task management}
+\label{tab:framework_comparison}
+\end{table}
+
+\subsection{System Architecture}
+
+The implemented system follows a three-tier architecture comprising a React frontend \parencite{react2013}, Flask backend \parencite{flask2010}, and PostgreSQL database \parencite{postgresql1996}, with LangGraph serving as the agent core.
+
+\subsubsection{Frontend Layer}
+The frontend is implemented using React 18.2 with functional components and hooks. Key features include:
+\begin{itemize}
+    \item Modern UI with CSS gradients, card-based layouts, and responsive design
+    \item User management interface with creation, selection, and listing
+    \item Task CRUD operations with status, priority, and deadline management
+    \item Email reminder triggers for upcoming deadlines
+    \item Environment-based API URL configuration for deployment flexibility
+\end{itemize}
+
+\subsubsection{Backend API Layer}
+The backend is implemented using Flask with the following characteristics:
+\begin{itemize}
+    \item RESTful API endpoints: \texttt{/api/users}, \texttt{/api/tasks}, \texttt{/api/reminders}
+    \item CORS support for cross-origin requests
+    \item JSON response formatting with structured data parsing
+    \item Environment-based configuration via python-dotenv
+    \item Integration with LangGraph agent workflow for all operations
+\end{itemize}
+
+\subsubsection{Agent Core (LangGraph)}
+The LangGraph agent implements a StateGraph with the following components:
+\begin{itemize}
+    \item \textbf{State Definition:} TypedDict-based AgentState containing message history
+    \item \textbf{Router Function:} Analyses command prefixes to determine routing
+    \item \textbf{Node Functions:} Dedicated handlers for each operation type:
+    \begin{itemize}
+        \item help, show\_tasks, add\_task, update\_task, delete\_task
+        \item create\_user, get\_user, update\_user, delete\_user, list\_users
+        \item reminders, export\_tasks, import\_tasks
+    \end{itemize}
+    \item \textbf{Conditional Edges:} Graph-based routing from START through router to specific nodes, terminating at END
+\end{itemize}
+
+\subsubsection{Database Layer}
+PostgreSQL serves as the persistent storage layer with the following schema:
+\begin{itemize}
+    \item \textbf{user\_profiles:} id (SERIAL PRIMARY KEY), name, email (UNIQUE), academic\_program
+    \item \textbf{tasks:} id (SERIAL PRIMARY KEY), user\_id (FOREIGN KEY), title, description, deadline, priority, status, created\_at
+    \item Foreign key constraints ensure referential integrity with CASCADE deletion
+\end{itemize}
+
+\subsection{Implementation Results}
+
+The implemented prototype successfully demonstrates:
+\begin{enumerate}
+    \item \textbf{User Management:} Full CRUD operations for academic users with email and program tracking
+    \item \textbf{Task Management:} Complete task lifecycle management with filtering, sorting, and status tracking
+    \item \textbf{Reminder System:} SMTP-based email notifications for upcoming deadlines
+    \item \textbf{Data Portability:} CSV export/import functionality for backup and migration
+    \item \textbf{Deployment Readiness:} Configuration for both local development and cloud deployment (Render, Vercel, Heroku)
+\end{enumerate}
+
+The LangGraph-based architecture proved effective for this use case, providing deterministic routing, efficient state management, and straightforward database integration without the overhead of LLM API calls for routine operations.
+
+\section{Project Scheduling and Risk Management}
+\label{proj_sched_risk_mgt}
+\subsection{Project Schedule (Gantt Chart)}
+The project timeline spans 14 weeks and is structured into six main phases.
+The complete Gantt chart is presented in the Appendix~\ref{app:gantt} (Table~\ref{tab:gantt}
+
+
+\subsubsection{Detailed Weekly Breakdown:}
+\begin{enumerate}
+    \item Weeks 1-2: Review of the literature (agentic AI, planning algorithms, frameworks)
+    \item Week 3: Recruiting of requirements and definition of scenarios
+    \item Week 4: Architecture specification and framework selection
+    \item Weeks 5-6: Detailed design of components and interfaces
+    \item Weeks 7-8: Core implementation (data structures, basic planning)
+    \item Week 9: Integration and initial testing
+    \item Week 10: Experimental framework and pilot testing
+    \item Week 11: Execution of the main experiment
+    \item Week 12: Data analysis and interpretation
+    \item Weeks 13-14: Report writing, results documentation, finalisation
+\end{enumerate}
+\subsection{Risk Register and Risk Matrix}
+\subsubsection{Implementation Complexity Exceeds Timeline}
+\begin{enumerate}
+    \item Description: The agent framework or planning approach chosen is more complex to implement than anticipated, delaying prototype development.
+    \item Probability: Medium
+    \item Impact: High
+    \item Mitigation: 
+  \begin{enumerate}
+      \item Start with a simpler planning approach; iterate to complexity
+    \item Allocate buffer time according to the schedule (Weeks 7-9)
+    \item Have a fallback to simpler algorithmic approach if LLM-based implementation proves too challenging
+    \end{enumerate}
+\end{enumerate}
+\subsubsection{Difficulty in Obtaining Meaningful Evaluation Metrics:}
+\begin{enumerate}
+    \item Description: Defining and measuring "good schedules" may be ambiguous, making comparative evaluation difficult.
+    \item Probability: Medium
+    \item Impact: Medium
+    \item Mitigation: 
+  \begin{enumerate}
+      \item Define clear objective metrics early(feasibility, constraint violations).
+    \item Pilot test metrics in week 10 to validate usefulness
+    \item Include both quantitative and qualitative evaluation methods
+    \end{enumerate}
+\end{enumerate}
+\subsubsection{Technical dependencies and Library Issues:}
+\begin{enumerate}
+    \item Description: Required libraries (e.g., LLM APIs, constraint solvers) may have compatibility issues, API changes, or access limitations.
+    \item Probability: Low
+    \item Impact: High
+    \item Mitigation: 
+  \begin{enumerate}
+      \item Test dependencies early (weeks 4-5).
+    \item Identify alternative libraries/frameworks.
+    \item Use local/offline solutions where possible to avoid API dependency
+    \end{enumerate}
+\end{enumerate}
+\subsubsection{Scope Creep:}
+\begin{enumerate}
+    \item Description: Temptation to add features (e.g., user interface, calendar integration) beyond core agentic planning research.
+    \item Probability: Medium
+    \item Impact: Medium
+    \item Mitigation: 
+  \begin{enumerate}
+      \item Observe strict requirements and objectives.
+    \item Document "future work" items separately.
+    \item Regular scope review against project goals
+    \end{enumerate}
+\end{enumerate}
+\subsubsection{Insufficient Experimental Scenario:}
+\begin{enumerate}
+    \item Description: The limited diversity of scenarios may not provide robust evaluation or meaningful insight.
+    \item Probability: Low
+    \item Impact: Medium
+    \item Mitigation: 
+  \begin{enumerate}
+      \item Define Scenario sets early with clear rationale.
+    \item Include edge cases (very tight deadlines, many dependencies).
+    \item Pilot testing will reveal whether scenarios are sufficient
+    \end{enumerate}
+\end{enumerate}
+\subsubsection{Non-Deterministic Behaviour Complicates Evaluation:}
+\begin{enumerate}
+    \item Description: LLM-based planning may produce inconsistent results, making statistical analysis difficult.
+    \item Probability: Medium
+    \item Impact: Low
+    \item Mitigation: 
+  \begin{enumerate}
+      \item Run multiple trials per scenario (10 repetitions).
+    \item Use appropriate statistical methods for variability.
+    \item Consider this a feature to analyse (robustness evaluation)
+    \end{enumerate}
+\end{enumerate}
+\subsubsection{Time Constraints for Full Comparative Evaluation:}
+\begin{enumerate}
+    \item Description: Implementing multiple planning approaches for comparative evaluation may exceed the available time.
+    \item Probability: Medium
+    \item Impact: Medium
+    \item Mitigation: 
+  \begin{enumerate}
+      \item Prioritise a single approach for the core prototype.
+    \item Comparative evaluation can be limited to 2 approaches if time-constrained
+    \item Document limitations and future work for an expanded comparison.
+    \end{enumerate}
+\end{enumerate}
+In conclusion, the critical risks with high impact and medium or high likelihood are the complexity of implementation and technical dependencies.
+
+\section{Outlook}
+
+This research project contributes to understanding how agentic AI systems can handle constraint-based structured planning problems. By designing and evaluating a prototypical study planner, the project provides empirical insights into the feasibility, strengths, and limitations of autonomous scheduling agents.
+
+The anticipated contributions are:
+
+\begin{enumerate}
+    \item Technical insights into how different agentic planning approaches (LLM-based, algorithmic, hybrid) perform in realistic constraint-based scenarios, including trade-offs in feasibility, efficiency, and explainability.
+
+    \item Methodological contributions through the development of evaluation frameworks and metrics for assessing agentic planning systems in scheduling domains, which can be applied to other planning problems.
+
+    \item Identification of limitations through clear documentation of failure modes, edge cases, and scenarios where agentic planners struggle, informing future research directions.
+
+    \item Comparative analysis: if multiple approaches are evaluated, information on when different planning paradigms are most appropriate.
+\end{enumerate}
+
+Future directions for extending this work include
+\begin{enumerate}
+    \item Integration with real systems: future work could integrate the planner with actual calendar applications or learning management systems, though this would shift toward real-world application research.
+
+    \item Multi-agent scenarios: exploring how multiple agentic planners could coordinate when managing schedules for groups of students or collaborative projects.
+
+    \item Advanced planning techniques: incorporating more sophisticated planning algorithms (e.g., temporal planning, resource-constrained project scheduling) or learning-based approaches that improve over time.
+
+    \item Scalability evaluation: testing the planner's performance with larger numbers of tasks (50+ tasks) or longer planning horizons (semester-level planning).
+
+    \item User preference learning: extending the agent to learn and adapt to individual user preferences and working patterns through interaction.
+\end{enumerate}
+
+SLEP considerations:
+
+Although detailed societal, legal, ethical and professional (SLEP) analysis is outside the scope of this cw2 proposal, future work should address the following:
+\begin{enumerate}
+    \item Societal: impact of automated planning on student autonomy and learning skills; accessibility considerations for diverse student needs.
+    \item Legal: data privacy concerns if the system processes personal academic information; compliance with educational data protection regulations.
+    \item Ethical: bias in scheduling recommendations; transparency and user control over automated decisions; avoiding over-reliance on AI planning.
+    \item Professional: integration with academic integrity policies; appropriate use of AI tools in educational contexts.
+\end{enumerate}
+
+These SLEP considerations would be essential for any real-world deployment, but are noted here as important future research directions rather than the current project scope.
+\newpage
+\addcontentsline{toc}{section}{References}
+\printbibliography
+\section*{Appendix}
+\addcontentsline{toc}{section}{Appendix}
+\appendix
+\subsection{Gantt Chart} \label{app:gantt}
+\begin{table}[h!]
+\centering
+\small
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.7}
+
+\newcommand{\ganttcell}{\cellcolor{gray!40}}
+
+\begin{tabular}{|p{10cm}|*{14}{c|}}
+\hline
+\textbf{Phase} & \multicolumn{14}{c|}{\textbf{Weeks}} \\ \hline
+ & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 & 11 & 12 & 13 & 14 \\ \hline
+\textbf{Literature Review \& Requirements}
+  & \ganttcell & \ganttcell & \ganttcell & \ganttcell &  &  &  &  &  &  &  &  &  &  \\ \hline
+\textbf{Architecture Design}
+  &  &  &  &  & \ganttcell & \ganttcell &  &  &  &  &  &  &  &  \\ \hline
+\textbf{Implementation}
+  &  &  &  &  &  &  & \ganttcell & \ganttcell & \ganttcell &  &  &  &  &  \\ \hline
+\textbf{Experimental Design}
+  &  &  &  &  &  &  &  &  &  & \ganttcell &  &  &  &  \\ \hline
+\textbf{Main Experiments}
+  &  &  &  &  &  &  &  &  &  &  & \ganttcell & \ganttcell &  &  \\ \hline
+\textbf{Report Writing}
+  &  &  &  &  &  &  &  &  &  &  &  &  & \ganttcell & \ganttcell \\ \hline
+\end{tabular}
+\caption{Gantt chart for the 14-week project schedule}
+\label{tab:gantt}
+\end{table}
+
+\end{document}
+Table \ref{table:1} is an example of referenced \LaTeX{} elements.
+
+\section{Literature Review}
+This section provides a discussion of the technical methods and technologies related to the proposed 
+research project.
+
+The review discussion should be organised systematically and critical discussion 
+should be exercised where possible.
+
+References should be specifically included in the discussion to support your 
+arguments.
+
+
+\section{Project Methods}
+
+This section provides a discussion and illustration on the concept of a
+\begin{itemize}
+\item the project type,
+\item the suitable methods for the steps of project execution, e.g., 
+\begin{enumerate}
+\item method for requirements,
+\item method for design,
+\item method for practical work (e.g., software prototyping, system/model/testbed
+experiments, testing, etc.), and
+\item method for evaluation
+\end{enumerate}
+\end{itemize}
+
+\section{Project Scheduling and Risk Management}
+
+This section provides a discussion and illustration on the concept of a
+\begin{itemize}
+\item Gantt chart of the proposed research project,
+\item risk register and risk matrix of the proposed research project
+\end{itemize}
+
