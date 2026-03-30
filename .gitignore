@@ -47,3 +47,9 @@ Thumbs.db
 # Local packaging
 prototype/
 prototype.zip
+
+# Local analysis artifacts
+evaluation_results.json
+nfr_benchmark_results.json
+Masters_Project_Handbook_2025_26_GCU.txt
+Masters Project Handbook 2025_26  (GCU).pdf
