@@ -1,8 +1,13 @@
-# Minimal AutoGen Example
-from autogen import AssistantAgent, UserProxyAgent
+# Minimal AutoGen Example (pyautogen 0.10+)
+from autogen_agentchat.agents import AssistantAgent
+from autogen_agentchat.ui import Console
+from autogen_core import CancellationToken
+import asyncio
 
+async def main():
+    agent = AssistantAgent(name="assistant", model_client=None)
+    print("AutoGen agent created successfully!")
+    print(f"Agent name: {agent.name}")
 
-assistant = AssistantAgent(name="assistant")
-user = UserProxyAgent(name="user", human_input_mode="NEVER", code_execution_config={"use_docker": False})
-
-user.initiate_chat(assistant, message="Hello, AutoGen!")
+if __name__ == "__main__":
+    asyncio.run(main())

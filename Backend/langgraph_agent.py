@@ -1,6 +1,11 @@
 # langgraph_agent.py
 """
-Academic Task Agent with LangGraph + PostgreSQL
+Academic Task Agent with LangGraph + PostgreSQL + Groq LLM
+
+This is a TRUE AGENTIC AI system that uses:
+1. Goal-directed autonomy via LLM reasoning
+2. Feedback-based adaptation through conversation context
+3. Tool use (database operations) orchestrated by AI decisions
 
 Features
 --------
@@ -38,8 +43,13 @@ DB_USER
 DB_PASSWORD
 DB_HOST
 DB_PORT
+GROQ_API_KEY
 
 Optional for email reminders:
+EMAIL_PROVIDER=auto
+BREVO_API_KEY
+BREVO_FROM_EMAIL
+BREVO_FROM_NAME
 SMTP_HOST
 SMTP_PORT
 SMTP_USER
@@ -51,26 +61,710 @@ SMTP_USE_TLS=true
 import os
 import csv
 import io
+import json
 import shlex
 import smtplib
 from pathlib import Path
 from email.message import EmailMessage
 from datetime import datetime, date, timedelta
+from urllib import error as urllib_error
+from urllib import request as urllib_request
 from typing import Optional, Any
 from typing_extensions import TypedDict, Annotated, Literal
 
 import psycopg2
 from psycopg2 import IntegrityError
 from dotenv import load_dotenv
-from langchain_core.messages import HumanMessage, AIMessage, BaseMessage
+from langchain_core.messages import HumanMessage, AIMessage, BaseMessage, SystemMessage
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
+
+# Groq LLM for true agentic reasoning
+try:
+    from langchain_groq import ChatGroq
+    GROQ_AVAILABLE = True
+except ImportError:
+    GROQ_AVAILABLE = False
+    print("Warning: langchain-groq not installed. Run: pip install langchain-groq")
 
 
 # ----------------------------
 # Load environment variables
 # ----------------------------
 load_dotenv()
+
+
+# ----------------------------
+# LLM Setup for Agentic Reasoning
+# ----------------------------
+def get_llm():
+    """Initialize Groq LLM for agentic reasoning."""
+    if not GROQ_AVAILABLE:
+        return None
+    
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key or api_key == "your_groq_api_key_here":
+        return None
+    
+    try:
+        return ChatGroq(
+            model="llama-3.3-70b-versatile",  # Current Groq model (updated from 3.1)
+            temperature=0.3,
+            api_key=api_key
+        )
+    except Exception as e:
+        print(f"Warning: Could not initialize Groq LLM: {e}")
+        return None
+
+
+# Global LLM instance (lazy loaded)
+_llm_instance = None
+
+def get_llm_instance():
+    """Get or create the global LLM instance."""
+    global _llm_instance
+    if _llm_instance is None:
+        _llm_instance = get_llm()
+    return _llm_instance
+
+
+# ----------------------------
+# Agentic AI Reasoning Functions
+# ----------------------------
+TASK_AGENT_SYSTEM_PROMPT = """You are an intelligent academic task management assistant for MSc students.
+
+Your capabilities:
+1. UNDERSTAND natural language requests about tasks, deadlines, and priorities
+2. REASON about task prioritization based on deadlines, workload, and importance
+3. PROVIDE thoughtful advice on time management and study planning
+4. EXPLAIN your recommendations clearly
+
+When analyzing tasks, consider:
+- Deadline proximity (urgent tasks first)
+- Task complexity and estimated duration
+- Dependencies between tasks
+- Student's available time and workload balance
+
+Always be helpful, concise, and supportive. Use emojis sparingly for friendliness.
+"""
+
+
+def llm_understand_intent(user_message: str, user_id: Optional[int] = None) -> dict:
+    """
+    Use LLM to understand user intent from natural language.
+    
+    This is TRUE AGENTIC BEHAVIOR: The AI reasons about what the user wants
+    rather than relying on pattern matching.
+    
+    Returns: {
+        "intent": "show_tasks" | "add_task" | "update_task" | "delete_task" | 
+                  "advice" | "prioritize" | "help" | "greeting" | "unknown",
+        "parameters": {...extracted params...},
+        "reasoning": "explanation of understanding"
+    }
+    """
+    llm = get_llm_instance()
+    if not llm:
+        # Fallback to pattern matching if LLM unavailable
+        return {"intent": "fallback", "parameters": {}, "reasoning": "LLM not available"}
+    
+    try:
+        prompt = f"""Analyze this user message and determine their intent and all required fields for task creation.
+
+User message: "{user_message}"
+{f"Current user ID: {user_id}" if user_id else ""}
+
+Determine the intent from these options:
+- show_tasks: User wants to see their tasks
+- add_task: User wants to create a new task
+- update_task: User wants to modify an existing task
+- delete_task: User wants to remove a task
+- advice: User wants study/time management advice
+- prioritize: User wants help prioritizing their tasks
+- help: User wants to know available commands
+- greeting: User is just saying hello
+- unknown: Cannot determine intent
+
+For add_task, extract ALL required fields:
+- title: required
+- description: optional (default "")
+- deadline: required (in YYYY-MM-DD HH:MM format if possible, do not default to 12:00 AM)
+- priority: required (accept high/medium/low or 1-5, map to integer: high=1, medium=3, low=5)
+- user_id: required
+- status: required (default "pending")
+
+If deadline time is missing, ask user for a specific time or default to 17:00 (end of day).
+If priority is missing or ambiguous, ask user to clarify or default to medium (3).
+
+Respond in this exact JSON format:
+{{"intent": "...", "parameters": {{...}}, "reasoning": "brief explanation"}}
+"""
+        
+        response = llm.invoke([
+            SystemMessage(content="You are an intent classification system. Respond only with valid JSON."),
+            HumanMessage(content=prompt)
+        ])
+        
+        # Parse JSON response
+        import json
+        result = json.loads(response.content)
+        return result
+        
+    except Exception as e:
+        return {"intent": "fallback", "parameters": {}, "reasoning": f"Error: {e}"}
+
+
+def llm_prioritize_tasks(tasks: list, user_name: str = "Student") -> str:
+    """
+    Use LLM to analyze tasks and provide intelligent prioritization advice.
+    
+    This is TRUE AGENTIC REASONING: The AI thinks about the student's workload
+    and makes personalized recommendations.
+    """
+    llm = get_llm_instance()
+    if not llm or not tasks:
+        return None
+    
+    try:
+        # Format tasks for analysis
+        task_summary = []
+        for t in tasks:
+            task_id, title, desc, deadline, priority, status, created = t
+            deadline_str = deadline.strftime('%Y-%m-%d %H:%M') if hasattr(deadline, 'strftime') else str(deadline)
+            priority_str = 'high' if priority == 1 else 'medium' if priority == 3 else 'low'
+            task_summary.append(f"- ID:{task_id} | '{title}' | Due: {deadline_str} | Priority: {priority_str} | Status: {status}")
+        
+        tasks_text = "\n".join(task_summary)
+        today = date.today().isoformat()
+        
+        prompt = f"""As an academic task management AI, analyze these tasks and provide robust prioritization advice.
+
+Today's date: {today}
+Student: {user_name}
+
+Current tasks:
+{tasks_text}
+
+Provide a detailed, actionable analysis:
+1. Which task(s) need immediate attention and why?
+2. Are there any deadline conflicts or risks?
+3. Explain why one task is prioritised over another (consider deadline, priority, workload, and time of day).
+4. One specific recommendation for today.
+
+Keep your response concise (under 150 words), friendly, and use 1-2 relevant emojis. Make the explanation clear and human-friendly.
+"""
+        
+        response = llm.invoke([
+            SystemMessage(content=TASK_AGENT_SYSTEM_PROMPT),
+            HumanMessage(content=prompt)
+        ])
+        
+        return response.content
+        
+    except Exception as e:
+        return None
+
+
+def llm_generate_advice(user_question: str, tasks: list = None, user_name: str = "Student") -> str:
+    """
+    Use LLM to generate personalized study/time management advice.
+    
+    This demonstrates GOAL-DIRECTED AUTONOMY: The AI understands the student's
+    situation and provides thoughtful guidance.
+    """
+    llm = get_llm_instance()
+    if not llm:
+        return "I'd love to help with advice, but my AI reasoning is currently unavailable. Please check your GROQ_API_KEY."
+    
+    try:
+        # Include task context if available
+        context = ""
+        if tasks:
+            task_summary = []
+            for t in tasks[:5]:  # Limit to 5 tasks for context
+                task_id, title, desc, deadline, priority, status, created = t
+                task_summary.append(f"- '{title}' due {deadline} (priority {priority}, {status})")
+            context = f"\n\nStudent's current tasks:\n" + "\n".join(task_summary)
+        
+        prompt = f"""Student {user_name} asks: "{user_question}"
+{context}
+
+Provide helpful, personalized advice. Be concise (under 100 words), practical, and encouraging.
+"""
+        
+        response = llm.invoke([
+            SystemMessage(content=TASK_AGENT_SYSTEM_PROMPT),
+            HumanMessage(content=prompt)
+        ])
+        
+        return response.content
+        
+    except Exception as e:
+        return f"I encountered an issue generating advice: {e}"
+
+
+def llm_explain_schedule(schedule_data: dict, user_name: str = "Student") -> str:
+    """
+    Use LLM to explain scheduling decisions.
+    
+    This provides EXPLAINABILITY: The AI can articulate why it made certain
+    recommendations, a key feature of trustworthy agentic systems.
+    """
+    llm = get_llm_instance()
+    if not llm:
+        return None
+    
+    try:
+        prompt = f"""Explain this task schedule to {user_name} in a friendly, helpful way.
+
+Schedule data:
+{schedule_data}
+
+Provide a robust explanation (under 120 words) of:
+1. Why tasks are ordered this way (consider deadline, priority, time of day, workload balance)
+2. Any potential concerns with the schedule
+3. One tip for success
+4. If multiple tasks are scheduled on the same day, explain the reasoning for their order and time allocation.
+"""
+        
+        response = llm.invoke([
+            SystemMessage(content=TASK_AGENT_SYSTEM_PROMPT),
+            HumanMessage(content=prompt)
+        ])
+        
+        return response.content
+        
+    except Exception as e:
+        return None
+
+
+# ----------------------------
+# Agentic Schedule Generation
+# ----------------------------
+def generate_ai_schedule(user_id: int, start_date: str = None, days_ahead: int = 7) -> dict:
+    """
+    CORE AGENTIC FUNCTION: Generate an optimized study schedule.
+    
+    This demonstrates the three pillars of agentic AI:
+    1. GOAL-DIRECTED AUTONOMY: The agent pursues the goal of creating
+       an effective schedule without step-by-step user guidance.
+    2. TOOL USE: The agent queries the database and uses LLM reasoning.
+    3. FEEDBACK-BASED ADAPTATION: The agent explains its decisions and
+       can adjust when constraints change.
+    
+    Algorithm:
+    1. Fetch tasks with deadlines (workload to schedule)
+    2. Fetch student availability (when they can work)
+    3. Use LLM to intelligently assign tasks to slots
+    4. Store scheduled slots in database
+    5. Return schedule with explanations
+    """
+    from datetime import datetime, timedelta, date as date_type
+    import json as json_module
+    
+    if not start_date:
+        start_date = datetime.now().date().isoformat()
+    
+    # Parse start date
+    if isinstance(start_date, str):
+        start = datetime.strptime(start_date, '%Y-%m-%d').date()
+    else:
+        start = start_date
+    
+    end = start + timedelta(days=days_ahead)
+    
+    result = {
+        'success': False,
+        'schedule': [],
+        'reasoning': '',
+        'warnings': [],
+        'stats': {}
+    }
+    
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        
+        # 1. Get all pending tasks for this user with deadlines
+        cur.execute("""
+            SELECT id, title, description, deadline, priority, status, created_at
+            FROM tasks
+            WHERE user_id = %s 
+              AND status NOT IN ('completed', 'done')
+              AND (deleted = FALSE OR deleted IS NULL)
+            ORDER BY deadline ASC NULLS LAST, priority ASC
+        """, (user_id,))
+        tasks = cur.fetchall()
+        
+        if not tasks:
+            result['success'] = True
+            result['reasoning'] = "No pending tasks to schedule. You're all caught up! 🎉"
+            cur.close()
+            conn.close()
+            return result
+        
+        # 2. Get student availability
+        cur.execute("""
+            SELECT day_of_week, start_time, end_time, location
+            FROM student_availability
+            WHERE user_id = %s
+            ORDER BY day_of_week, start_time
+        """, (user_id,))
+        availability = cur.fetchall()
+        
+        # If no availability set, create default (9 AM - 5 PM weekdays)
+        if not availability:
+            result['warnings'].append("No availability set. Using default schedule (9 AM - 5 PM on weekdays). Set your availability for better results!")
+            availability = [
+                (0, '09:00', '12:00', 'Default'),  # Monday morning
+                (0, '14:00', '17:00', 'Default'),  # Monday afternoon
+                (1, '09:00', '12:00', 'Default'),  # Tuesday morning
+                (1, '14:00', '17:00', 'Default'),  # Tuesday afternoon
+                (2, '09:00', '12:00', 'Default'),  # Wednesday morning
+                (2, '14:00', '17:00', 'Default'),  # Wednesday afternoon
+                (3, '09:00', '12:00', 'Default'),  # Thursday morning
+                (3, '14:00', '17:00', 'Default'),  # Thursday afternoon
+                (4, '09:00', '12:00', 'Default'),  # Friday morning
+                (4, '14:00', '17:00', 'Default'),  # Friday afternoon
+            ]
+        
+        # 3. Build available time slots for the date range
+        available_slots = []
+        current = start
+        while current <= end:
+            day_num = current.weekday()  # 0=Monday, 6=Sunday
+            for avail in availability:
+                if avail[0] == day_num:
+                    available_slots.append({
+                        'date': current.isoformat(),
+                        'day_name': current.strftime('%A'),
+                        'start_time': str(avail[1])[:5],
+                        'end_time': str(avail[2])[:5],
+                        'location': avail[3] if len(avail) > 3 else ''
+                    })
+            current += timedelta(days=1)
+        
+        if not available_slots:
+            result['success'] = False
+            result['reasoning'] = f"No available time slots in the next {days_ahead} days. Please add your availability first."
+            cur.close()
+            conn.close()
+            return result
+        
+        # 4. Use LLM to create intelligent schedule
+        user_name = get_user_name(user_id)
+        llm = get_llm_instance()
+        
+        # Format tasks for LLM
+        task_info = []
+        for t in tasks:
+            task_id, title, desc, deadline, priority, status, created = t
+            deadline_str = deadline.strftime('%Y-%m-%d') if hasattr(deadline, 'strftime') else str(deadline)[:10] if deadline else 'No deadline'
+            task_info.append({
+                'id': task_id,
+                'title': title,
+                'deadline': deadline_str,
+                'priority': priority if priority else 3,
+                'status': status
+            })
+        
+        if llm:
+            # Use LLM for intelligent scheduling
+            schedule_prompt = f"""You are an intelligent academic scheduler for {user_name}.
+
+Today's date: {start.isoformat()}
+Scheduling window: {start.isoformat()} to {end.isoformat()}
+
+TASKS TO SCHEDULE:
+{json_module.dumps(task_info, indent=2)}
+
+AVAILABLE TIME SLOTS:
+{json_module.dumps(available_slots[:20], indent=2)}  {"(More slots available)" if len(available_slots) > 20 else ""}
+
+Create an optimal schedule following these rules:
+1. HIGH PRIORITY tasks (priority 1-2) should be scheduled first and in earlier slots
+2. Tasks with NEAR DEADLINES should be scheduled before their deadline
+3. SPREAD workload - don't overload a single day
+4. Provide 1-2 hour slots per task (based on complexity)
+
+Respond in EXACT JSON format:
+{{
+  "scheduled_tasks": [
+    {{
+      "task_id": <int>,
+      "date": "YYYY-MM-DD",
+      "start_time": "HH:MM",
+      "end_time": "HH:MM",
+      "reasoning": "Brief explanation"
+    }}
+  ],
+  "overall_reasoning": "1-2 sentence summary of schedule strategy",
+  "warnings": ["any concerns about deadlines or workload"]
+}}
+
+Only schedule tasks that have available slots. Each task should appear at most once.
+"""
+            
+            try:
+                response = llm.invoke([
+                    SystemMessage(content="You are a precise scheduling assistant. Respond only with valid JSON."),
+                    HumanMessage(content=schedule_prompt)
+                ])
+                
+                # Parse LLM response
+                llm_schedule = json_module.loads(response.content)
+                
+                # Clear existing scheduled slots for this date range
+                cur.execute("""
+                    DELETE FROM scheduled_slots 
+                    WHERE user_id = %s AND scheduled_date BETWEEN %s AND %s
+                """, (user_id, start.isoformat(), end.isoformat()))
+                
+                # Insert new scheduled slots
+                scheduled_items = []
+                for item in llm_schedule.get('scheduled_tasks', []):
+                    cur.execute("""
+                        INSERT INTO scheduled_slots 
+                        (user_id, task_id, scheduled_date, start_time, end_time, status, ai_reasoning, confidence_score)
+                        VALUES (%s, %s, %s, %s, %s, 'scheduled', %s, %s)
+                        RETURNING id
+                    """, (
+                        user_id,
+                        item['task_id'],
+                        item['date'],
+                        item['start_time'],
+                        item['end_time'],
+                        item.get('reasoning', 'AI scheduled'),
+                        0.85  # Default confidence
+                    ))
+                    slot_id = cur.fetchone()[0]
+                    
+                    # Find task title
+                    task_title = next((t['title'] for t in task_info if t['id'] == item['task_id']), 'Unknown Task')
+                    
+                    scheduled_items.append({
+                        'id': slot_id,
+                        'task_id': item['task_id'],
+                        'task_title': task_title,
+                        'date': item['date'],
+                        'start_time': item['start_time'],
+                        'end_time': item['end_time'],
+                        'reasoning': item.get('reasoning', '')
+                    })
+                
+                conn.commit()
+                
+                result['success'] = True
+                result['schedule'] = scheduled_items
+                result['reasoning'] = llm_schedule.get('overall_reasoning', 'Schedule generated using AI optimization.')
+                result['warnings'].extend(llm_schedule.get('warnings', []))
+                result['stats'] = {
+                    'tasks_scheduled': len(scheduled_items),
+                    'total_tasks': len(tasks),
+                    'days_covered': days_ahead
+                }
+                
+            except json_module.JSONDecodeError as e:
+                # LLM didn't return valid JSON, fall back to algorithmic
+                result['warnings'].append(f"AI response parsing failed, using algorithmic scheduling: {str(e)}")
+                result = _algorithmic_schedule(cur, conn, user_id, tasks, available_slots, task_info, result, start, end)
+                
+        else:
+            # No LLM available, use algorithmic scheduling
+            result['warnings'].append("AI scheduling not available (no LLM configured). Using algorithmic scheduling.")
+            result = _algorithmic_schedule(cur, conn, user_id, tasks, available_slots, task_info, result, start, end)
+        
+        cur.close()
+        conn.close()
+        
+        return result
+        
+    except Exception as e:
+        return {
+            'success': False,
+            'schedule': [],
+            'reasoning': f'Error generating schedule: {str(e)}',
+            'warnings': [],
+            'stats': {}
+        }
+
+
+def _algorithmic_schedule(cur, conn, user_id, tasks, available_slots, task_info, result, start, end):
+    """
+    Fallback algorithmic scheduler when LLM is not available.
+    Uses Earliest Deadline First (EDF) with priority weighting.
+    """
+    from datetime import datetime
+    
+    # Sort tasks by deadline (earliest first), then by priority (lowest number = highest priority)
+    sorted_tasks = sorted(task_info, key=lambda t: (
+        t['deadline'] if t['deadline'] != 'No deadline' else '9999-12-31',
+        t['priority']
+    ))
+    
+    # Clear existing scheduled slots for this date range
+    cur.execute("""
+        DELETE FROM scheduled_slots 
+        WHERE user_id = %s AND scheduled_date BETWEEN %s AND %s
+    """, (user_id, start.isoformat(), end.isoformat()))
+    
+    scheduled_items = []
+    used_slots = set()
+    
+    for task in sorted_tasks:
+        # Find first available slot
+        for i, slot in enumerate(available_slots):
+            slot_key = f"{slot['date']}_{slot['start_time']}"
+            if slot_key not in used_slots:
+                # Schedule this task in this slot
+                reasoning = f"Scheduled based on deadline ({task['deadline']}) and priority ({task['priority']})"
+                
+                cur.execute("""
+                    INSERT INTO scheduled_slots 
+                    (user_id, task_id, scheduled_date, start_time, end_time, status, ai_reasoning, confidence_score)
+                    VALUES (%s, %s, %s, %s, %s, 'scheduled', %s, %s)
+                    RETURNING id
+                """, (
+                    user_id,
+                    task['id'],
+                    slot['date'],
+                    slot['start_time'],
+                    slot['end_time'],
+                    reasoning,
+                    0.7  # Lower confidence for algorithmic
+                ))
+                slot_id = cur.fetchone()[0]
+                
+                scheduled_items.append({
+                    'id': slot_id,
+                    'task_id': task['id'],
+                    'task_title': task['title'],
+                    'date': slot['date'],
+                    'start_time': slot['start_time'],
+                    'end_time': slot['end_time'],
+                    'reasoning': reasoning
+                })
+                
+                used_slots.add(slot_key)
+                break
+    
+    conn.commit()
+    
+    result['success'] = True
+    result['schedule'] = scheduled_items
+    result['reasoning'] = 'Schedule generated using Earliest Deadline First algorithm with priority weighting.'
+    result['stats'] = {
+        'tasks_scheduled': len(scheduled_items),
+        'total_tasks': len(tasks),
+        'days_covered': (end - start).days
+    }
+    
+    return result
+
+
+def adapt_schedule_to_changes(user_id: int, trigger: str = "manual") -> dict:
+    """
+    AGENTIC ADAPTATION: Re-evaluate and adjust schedule when constraints change.
+    
+    This function embodies FEEDBACK-BASED ADAPTATION:
+    - When a task deadline changes, re-prioritize
+    - When new tasks are added, incorporate them
+    - When tasks are completed, free up slots
+    
+    The LLM explains what changed and why the schedule was adjusted.
+    """
+    from datetime import datetime, timedelta
+    
+    result = {
+        'success': False,
+        'changes': [],
+        'reasoning': '',
+        'new_schedule': []
+    }
+    
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        
+        # Get current scheduled slots
+        today = datetime.now().date()
+        cur.execute("""
+            SELECT ss.id, ss.task_id, t.title, t.status, t.deadline, ss.scheduled_date
+            FROM scheduled_slots ss
+            JOIN tasks t ON ss.task_id = t.id
+            WHERE ss.user_id = %s AND ss.scheduled_date >= %s
+            ORDER BY ss.scheduled_date
+        """, (user_id, today.isoformat()))
+        
+        current_slots = cur.fetchall()
+        changes = []
+        
+        # Check for completed tasks that need slots removed
+        for slot in current_slots:
+            slot_id, task_id, title, status, deadline, scheduled_date = slot
+            if status in ('completed', 'done'):
+                changes.append({
+                    'type': 'slot_freed',
+                    'task': title,
+                    'reason': 'Task was marked as completed'
+                })
+                cur.execute("DELETE FROM scheduled_slots WHERE id = %s", (slot_id,))
+        
+        # Check for tasks with passed deadlines
+        for slot in current_slots:
+            slot_id, task_id, title, status, deadline, scheduled_date = slot
+            if deadline and hasattr(deadline, 'date'):
+                if deadline.date() < today and status not in ('completed', 'done'):
+                    changes.append({
+                        'type': 'overdue_warning',
+                        'task': title,
+                        'reason': f'Deadline ({deadline.date()}) has passed but task is not complete'
+                    })
+        
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        # Re-generate schedule with updated constraints
+        if changes:
+            new_schedule_result = generate_ai_schedule(user_id, today.isoformat(), 7)
+            result['new_schedule'] = new_schedule_result.get('schedule', [])
+        
+        # Use LLM to explain changes if available
+        llm = get_llm_instance()
+        if llm and changes:
+            user_name = get_user_name(user_id)
+            explain_prompt = f"""Explain these schedule changes to {user_name} in a friendly way:
+
+Trigger: {trigger}
+Changes detected:
+{changes}
+
+Be brief (2-3 sentences) and encouraging.
+"""
+            try:
+                response = llm.invoke([
+                    SystemMessage(content=TASK_AGENT_SYSTEM_PROMPT),
+                    HumanMessage(content=explain_prompt)
+                ])
+                result['reasoning'] = response.content
+            except:
+                result['reasoning'] = f"Your schedule has been updated based on {len(changes)} change(s)."
+        else:
+            result['reasoning'] = "Schedule reviewed. No changes needed." if not changes else f"Made {len(changes)} adjustment(s) to your schedule."
+        
+        result['success'] = True
+        result['changes'] = changes
+        
+        return result
+        
+    except Exception as e:
+        return {
+            'success': False,
+            'changes': [],
+            'reasoning': f'Error adapting schedule: {str(e)}',
+            'new_schedule': []
+        }
 
 
 # ----------------------------
@@ -96,6 +790,64 @@ def get_db_settings() -> dict:
 def get_connection():
     """Open a new PostgreSQL connection."""
     return psycopg2.connect(**get_db_settings())
+
+
+# ----------------------------
+# Human-friendly formatting helpers
+# ----------------------------
+def get_user_name(user_id: int) -> str:
+    """Get user's name from database for personalized responses."""
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT name FROM user_profiles WHERE id = %s", (user_id,))
+                row = cur.fetchone()
+                if row:
+                    return row[0].split()[0]  # Return first name
+        return f"User {user_id}"
+    except:
+        return f"User {user_id}"
+
+
+def format_date_friendly(date_val) -> str:
+    """Convert date/datetime to human-friendly format."""
+    if not date_val:
+        return "No due date"
+    try:
+        if hasattr(date_val, 'strftime'):
+            return date_val.strftime('%B %d, %Y')  # e.g., "March 03, 2026"
+        # Handle string dates
+        date_str = str(date_val)[:10]
+        from datetime import datetime
+        dt = datetime.strptime(date_str, '%Y-%m-%d')
+        return dt.strftime('%B %d, %Y')
+    except:
+        return str(date_val)[:10]
+
+
+def format_priority_friendly(priority) -> str:
+    """Convert priority number to friendly label."""
+    try:
+        p = int(priority)
+        if p <= 2:
+            return "🔴 High Priority"
+        elif p <= 3:
+            return "🟡 Medium Priority"
+        else:
+            return "🟢 Low Priority"
+    except:
+        return str(priority)
+
+
+def format_status_friendly(status) -> str:
+    """Convert status to friendly label with emoji."""
+    status = str(status).lower()
+    if status in ('completed', 'done'):
+        return "✅ Completed"
+    elif status == 'in_progress':
+        return "🔄 In Progress"
+    else:
+        return "📋 Pending"
 
 
 def ensure_schema() -> None:
@@ -358,11 +1110,48 @@ def fetch_tasks(
 # ----------------------------
 # Optional email reminder helper
 # ----------------------------
-def send_email_notification(to_email: str, subject: str, body: str) -> tuple[bool, str]:
-    """
-    Send an email if SMTP settings are configured.
-    Returns (success, message).
-    """
+def _send_email_via_brevo_api(to_email: str, subject: str, body: str) -> tuple[bool, str]:
+    api_key = os.getenv("BREVO_API_KEY")
+    from_email = os.getenv("BREVO_FROM_EMAIL")
+    from_name = os.getenv("BREVO_FROM_NAME", "Agentic AI Prototype")
+
+    if not api_key or not from_email:
+        return False, "Brevo API settings are not fully configured in .env."
+
+    payload = {
+        "sender": {
+            "email": from_email,
+            "name": from_name,
+        },
+        "to": [{"email": to_email}],
+        "subject": subject,
+        "textContent": body,
+    }
+
+    request = urllib_request.Request(
+        "https://api.brevo.com/v3/smtp/email",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "accept": "application/json",
+            "api-key": api_key,
+            "content-type": "application/json",
+        },
+        method="POST",
+    )
+
+    try:
+        with urllib_request.urlopen(request, timeout=15) as response:
+            if 200 <= response.status < 300:
+                return True, f"Reminder email sent to {to_email} via Brevo API."
+            return False, f"Brevo API returned unexpected status {response.status}."
+    except urllib_error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="ignore")
+        return False, f"Brevo API request failed with {exc.code}: {detail or exc.reason}"
+    except Exception as exc:
+        return False, f"Brevo API request failed: {exc}"
+
+
+def _send_email_via_smtp(to_email: str, subject: str, body: str) -> tuple[bool, str]:
     smtp_host = os.getenv("SMTP_HOST")
     smtp_port = os.getenv("SMTP_PORT")
     smtp_user = os.getenv("SMTP_USER")
@@ -387,13 +1176,33 @@ def send_email_notification(to_email: str, subject: str, body: str) -> tuple[boo
             server.login(smtp_user, smtp_password)
             server.send_message(msg)
 
-        return True, f"Reminder email sent to {to_email}."
+        return True, f"Reminder email sent to {to_email} via SMTP."
     except Exception as e:
-        return False, f"Failed to send email: {e}"
+        return False, f"Failed to send email via SMTP: {e}"
+
+
+def send_email_notification(to_email: str, subject: str, body: str) -> tuple[bool, str]:
+    """
+    Send an email using the configured provider.
+    Brevo API is preferred for free-host deployment because it uses HTTPS
+    instead of blocked SMTP ports on some free platforms.
+    Returns (success, message).
+    """
+    provider = os.getenv("EMAIL_PROVIDER", "auto").strip().lower()
+
+    if provider == "brevo":
+        return _send_email_via_brevo_api(to_email, subject, body)
+    if provider == "smtp":
+        return _send_email_via_smtp(to_email, subject, body)
+
+    if os.getenv("BREVO_API_KEY") and os.getenv("BREVO_FROM_EMAIL"):
+        return _send_email_via_brevo_api(to_email, subject, body)
+
+    return _send_email_via_smtp(to_email, subject, body)
 
 
 # ----------------------------
-# Router
+# Router (with LLM-enhanced intent detection)
 # ----------------------------
 def route(
     state: AgentState,
@@ -411,9 +1220,11 @@ def route(
     "export_tasks",
     "import_tasks",
     "reminders",
+    "agentic_chat",
 ]:
     text = _last_human_text(state).lower()
 
+    # First check for explicit internal commands (from CLI/API)
     if text.startswith("show_tasks:"):
         return "show_tasks"
     if text.startswith("add_task:"):
@@ -438,6 +1249,20 @@ def route(
         return "import_tasks"
     if text.startswith("reminders:"):
         return "reminders"
+    
+    # For natural language input, use LLM to understand intent (AGENTIC REASONING)
+    if text.startswith("chat:") or text.startswith("agentic:"):
+        return "agentic_chat"
+    
+    # Check for natural language task creation (route to agentic_chat for LLM parsing)
+    add_task_keywords = ["add task", "create task", "new task", "add a task", "schedule task"]
+    if any(kw in text for kw in add_task_keywords):
+        return "agentic_chat"
+    
+    # Check for advice/help keywords that should trigger agentic chat
+    advice_keywords = ["advice", "help me", "prioritize", "suggest", "recommend", "how do i", "what should", "tips"]
+    if any(kw in text for kw in advice_keywords):
+        return "agentic_chat"
 
     return "help"
 
@@ -555,17 +1380,46 @@ def get_user_tasks(state: AgentState) -> dict:
             order=order,
         )
     except Exception as e:
-        return {"messages": [AIMessage(content=f"Error while fetching tasks: {e}")]}
+        return {"messages": [AIMessage(content=f"Sorry, I couldn't fetch your tasks: {e}")]}
+
+    # Get user's first name for personalization
+    user_name = get_user_name(user_id)
 
     if not rows:
-        return {"messages": [AIMessage(content=f"No matching tasks found for user {user_id}.")]}
+        return {"messages": [AIMessage(content=f"Hi {user_name}! 📭 You don't have any tasks yet.\n\nWould you like me to help you add one? Just say something like:\n\"Add a task to complete my assignment by next Friday\"")]}
 
-    lines = [f"Tasks for user {user_id}:"]
-    for task_id, title, desc, deadline, priority, status, created_at in rows:
-        lines.append(
-            f"- [{task_id}] {title} | status={status} | priority={priority} | due={deadline} | created_at={created_at}\n"
-            f"  desc: {desc}"
-        )
+    # Build friendly response
+    task_count = len(rows)
+    greeting = f"Hi {user_name}! 📋 Here are your {task_count} task{'s' if task_count > 1 else ''}:\n"
+    
+    lines = [greeting, "─" * 40]
+    
+    for idx, (task_id, title, desc, deadline, priority, status, created_at) in enumerate(rows, 1):
+        friendly_date = format_date_friendly(deadline)
+        friendly_priority = format_priority_friendly(priority)
+        friendly_status = format_status_friendly(status)
+        
+        task_block = f"""
+📌 **{title}**
+   {desc if desc else '(No description)'}
+   📅 Due: {friendly_date}
+   {friendly_priority} | {friendly_status}
+   [Task ID: {task_id}]"""
+        lines.append(task_block)
+    
+    lines.append("\n─" * 40)
+    
+    # Add AI-powered prioritization advice (TRUE AGENTIC REASONING)
+    ai_advice = llm_prioritize_tasks(rows, user_name)
+    if ai_advice:
+        lines.append("\n\n🤖 **AI Analysis:**")
+        lines.append(ai_advice)
+        lines.append("")
+    
+    lines.append("\n💡 **Quick actions:**")
+    lines.append("• Update a task status: \"update_task: <task_id>, status=completed\"")
+    lines.append("• Delete a task: \"delete_task: <task_id>\"")
+    lines.append("• Ask for advice: \"How should I prioritize my tasks?\"")
 
     return {"messages": [AIMessage(content="\n".join(lines))]}
 
@@ -619,13 +1473,28 @@ def add_task_to_db(state: AgentState) -> dict:
                 new_id = cur.fetchone()[0]
             conn.commit()
 
+        user_name = get_user_name(user_id)
+        friendly_date = format_date_friendly(deadline)
+        friendly_priority = format_priority_friendly(priority)
+        
+        response = f"""✅ Great, {user_name}! I've added your new task:
+
+📌 **{title}**
+   {description if description else '(No description)'}
+   📅 Due: {friendly_date}
+   {friendly_priority}
+   
+Task ID: {new_id}
+
+Would you like to see all your tasks? Just say "show my tasks"."""
+
         return {
             "messages": [
-                AIMessage(content=f"Task added successfully for user {user_id} with id={new_id}.")
+                AIMessage(content=response)
             ]
         }
     except Exception as e:
-        return {"messages": [AIMessage(content=f"Error while adding task: {e}")]}
+        return {"messages": [AIMessage(content=f"Sorry, I couldn't add that task: {e}")]}
 
 
 def update_task_in_db(state: AgentState) -> dict:
@@ -700,8 +1569,15 @@ def delete_task_from_db(state: AgentState) -> dict:
     try:
         task_id = _to_int(text.split(":", 1)[1].strip(), "task_id")
 
+        # Get task details before deleting for friendly message
+        task_title = None
         with get_connection() as conn:
             with conn.cursor() as cur:
+                cur.execute("SELECT title FROM tasks WHERE id = %s", (task_id,))
+                row = cur.fetchone()
+                if row:
+                    task_title = row[0]
+                
                 cur.execute(
                     """
                     DELETE FROM tasks
@@ -710,15 +1586,21 @@ def delete_task_from_db(state: AgentState) -> dict:
                     """,
                     (task_id,),
                 )
-                row = cur.fetchone()
+                deleted = cur.fetchone()
             conn.commit()
 
-        if not row:
-            return {"messages": [AIMessage(content=f"Task {task_id} not found.")]}
+        if not deleted:
+            return {"messages": [AIMessage(content=f"🔍 I couldn't find task #{task_id}. It may have already been deleted.\n\nWant to see your current tasks? Just say \"show my tasks\".")]}
 
-        return {"messages": [AIMessage(content=f"Task {task_id} deleted successfully.")]}
+        response = f"""🗑️ Done! I've deleted the task:
+
+   **{task_title if task_title else f'Task #{task_id}'}**
+
+Need to add a new task or see your remaining tasks?"""
+
+        return {"messages": [AIMessage(content=response)]}
     except Exception as e:
-        return {"messages": [AIMessage(content=f"Error while deleting task: {e}")]}
+        return {"messages": [AIMessage(content=f"Sorry, I couldn't delete that task: {e}")]}
 
 
 # ----------------------------
@@ -1121,38 +2003,247 @@ def send_reminders(state: AgentState) -> dict:
                 user_row = cur.fetchone()
 
         if not user_row:
-            return {"messages": [AIMessage(content=f"User {user_id} not found.")]}
+            return {"messages": [AIMessage(content=f"🔍 I couldn't find that user. Please check the user ID and try again.")]}
 
         name, email = user_row
+        first_name = name.split()[0] if name else "there"
 
         if not rows:
             return {
                 "messages": [
                     AIMessage(
-                        content=f"No upcoming incomplete tasks due in the next {days} day(s) for user {user_id}."
+                        content=f"🎉 Great news, {first_name}! You have no urgent tasks due in the next {days} day(s). Keep up the good work!"
                     )
                 ]
             }
 
+        # Build friendly reminder message
+        task_count = len(rows)
         lines = [
-            f"Upcoming tasks for {name} (user {user_id}) due in the next {days} day(s):"
+            f"⏰ Hey {first_name}! Here's your reminder:\n",
+            f"You have **{task_count} task{'s' if task_count > 1 else ''}** due in the next {days} day(s):\n",
+            "─" * 35
         ]
+        
         for title, deadline, priority, status in rows:
-            lines.append(f"- {title} | due={deadline} | priority={priority} | status={status}")
+            friendly_date = format_date_friendly(deadline)
+            friendly_priority = format_priority_friendly(priority)
+            lines.append(f"\n📌 **{title}**")
+            lines.append(f"   📅 Due: {friendly_date}")
+            lines.append(f"   {friendly_priority}")
+
+        lines.append("\n" + "─" * 35)
 
         summary = "\n".join(lines)
 
         if send_email:
             if email:
-                subject = f"Academic Task Reminder - next {days} day(s)"
-                ok, message = send_email_notification(email, subject, summary)
-                summary += f"\n\nEmail status: {message}"
+                subject = f"⏰ Task Reminder: {task_count} task(s) due soon"
+                email_body = summary.replace("**", "")  # Remove markdown for email
+                ok, message = send_email_notification(email, subject, email_body)
+                if ok:
+                    summary += f"\n\n📧 Email sent to {email}!"
+                else:
+                    summary += f"\n\n⚠️ Couldn't send email: {message}"
             else:
-                summary += "\n\nEmail status: No email address found for user."
+                summary += "\n\n⚠️ No email address on file for sending reminders."
+
+        summary += "\n\n💡 Need to update any task? Just let me know!"
 
         return {"messages": [AIMessage(content=summary)]}
     except Exception as e:
-        return {"messages": [AIMessage(content=f"Error while generating reminders: {e}")]}
+        return {"messages": [AIMessage(content=f"Sorry, I had trouble generating your reminder: {e}")]}
+
+
+# ----------------------------
+# Agentic Chat Node (TRUE AI REASONING)
+# ----------------------------
+def agentic_chat(state: AgentState) -> dict:
+    """
+    Handle natural language interactions using LLM reasoning.
+    
+    This is the CORE AGENTIC BEHAVIOR:
+    - Understands user intent through AI reasoning
+    - Provides personalized advice based on task context
+    - Demonstrates goal-directed autonomy
+    """
+    text = _last_human_text(state)
+    
+    # Remove prefix if present
+    if text.lower().startswith("chat:"):
+        text = text[5:].strip()
+    elif text.lower().startswith("agentic:"):
+        text = text[8:].strip()
+    
+    # Parse optional user_id from the message
+    user_id = None
+    params = _parse_kv_payload(_last_human_text(state))
+    if params.get("user_id"):
+        try:
+            user_id = _to_int(params.get("user_id"), "user_id")
+        except:
+            pass
+    
+    # Get user name and tasks for context
+    user_name = "Student"
+    tasks = []
+    if user_id:
+        user_name = get_user_name(user_id)
+        try:
+            tasks = fetch_tasks(user_id=user_id, status=None, search=None)
+        except:
+            pass
+    
+    # Check if LLM is available
+    llm = get_llm_instance()
+    if not llm:
+        return {"messages": [AIMessage(content="""🤖 AI reasoning is not available right now.
+
+**To enable full agentic AI features:**
+1. Get a free API key from: https://console.groq.com/keys
+2. Add it to your .env file: GROQ_API_KEY=your_key_here
+3. Restart the application
+
+In the meantime, you can still use these commands:
+• show <user_id> - View your tasks
+• add <user_id> - Add a new task
+• help - See all available commands
+""")]}
+    
+    # Use LLM to understand intent and generate response
+    intent_result = llm_understand_intent(text, user_id)
+    intent = intent_result.get("intent", "unknown")
+    
+    # Handle different intents
+    if intent == "advice" or intent == "prioritize":
+        advice = llm_generate_advice(text, tasks, user_name)
+        return {"messages": [AIMessage(content=advice)]}
+    
+    elif intent == "greeting":
+        return {"messages": [AIMessage(content=f"Hello {user_name}! 👋 I'm your AI academic task assistant. How can I help you today?\n\nYou can ask me to:\n• Show your tasks\n• Help prioritize your work\n• Give study advice\n• Add or update tasks")]}
+    
+    elif intent == "show_tasks" and user_id:
+        rows = fetch_tasks(user_id=user_id)
+        if rows:
+            advice = llm_prioritize_tasks(rows, user_name)
+            task_list = "\n".join([f"• {r[1]} (due {r[3]})" for r in rows[:5]])
+            response = f"📋 Here's a quick look at your tasks:\n{task_list}"
+            if advice:
+                response += f"\n\n🤖 **My advice:**\n{advice}"
+            return {"messages": [AIMessage(content=response)]}
+        else:
+            return {"messages": [AIMessage(content=f"You don't have any tasks yet, {user_name}. Would you like to add one?")]}
+    
+    elif intent == "add_task":
+        # Handle natural language task creation using LLM-extracted parameters
+        params = intent_result.get("parameters", {})
+        title = params.get("title", "").strip()
+        description = params.get("description", "").strip()
+        deadline_str = params.get("deadline", "").strip()
+        priority_raw = params.get("priority", 3)
+        status = params.get("status", "pending")
+        task_user_id = params.get("user_id") or user_id
+        
+        if not title:
+            return {"messages": [AIMessage(content="I couldn't understand the task title. Please say something like: 'Add task: Review AI paper by next Monday, high priority'")]}
+        
+        if not task_user_id:
+            return {"messages": [AIMessage(content="I need to know which user this task is for. Please make sure you're logged in.")]}
+        
+        # Parse deadline with proper time handling
+        from datetime import datetime, timedelta
+        deadline = None
+        if deadline_str:
+            try:
+                # Try parsing various formats
+                for fmt in ['%Y-%m-%d %H:%M', '%Y-%m-%d', '%Y/%m/%d %H:%M', '%Y/%m/%d']:
+                    try:
+                        deadline = datetime.strptime(deadline_str, fmt)
+                        break
+                    except:
+                        continue
+                
+                # If no time was specified and it's just a date, use 17:00 (end of day)
+                if deadline and deadline.hour == 0 and deadline.minute == 0:
+                    if '%H' not in deadline_str and ':' not in deadline_str:
+                        deadline = deadline.replace(hour=17, minute=0)
+            except Exception as e:
+                deadline = None
+        
+        # If still no deadline, try relative parsing
+        if not deadline and deadline_str:
+            text_lower = deadline_str.lower()
+            now = datetime.now()
+            if 'today' in text_lower:
+                deadline = now.replace(hour=17, minute=0, second=0, microsecond=0)
+            elif 'tomorrow' in text_lower:
+                deadline = (now + timedelta(days=1)).replace(hour=17, minute=0, second=0, microsecond=0)
+            elif 'monday' in text_lower:
+                days_ahead = (0 - now.weekday()) % 7
+                if days_ahead == 0:
+                    days_ahead = 7
+                deadline = (now + timedelta(days=days_ahead)).replace(hour=17, minute=0, second=0, microsecond=0)
+            elif 'next week' in text_lower:
+                deadline = (now + timedelta(days=7)).replace(hour=17, minute=0, second=0, microsecond=0)
+        
+        if not deadline:
+            deadline = datetime.now() + timedelta(days=7)
+            deadline = deadline.replace(hour=17, minute=0, second=0, microsecond=0)
+        
+        # Parse priority (handle string or int)
+        priority = 3  # Default medium
+        if isinstance(priority_raw, int):
+            priority = priority_raw
+        elif isinstance(priority_raw, str):
+            priority_lower = priority_raw.lower()
+            if priority_lower in ['1', 'high', 'urgent']:
+                priority = 1
+            elif priority_lower in ['2']:
+                priority = 2
+            elif priority_lower in ['3', 'medium', 'normal']:
+                priority = 3
+            elif priority_lower in ['4']:
+                priority = 4
+            elif priority_lower in ['5', 'low']:
+                priority = 5
+        
+        # Insert task into database
+        try:
+            with get_connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """
+                        INSERT INTO tasks (user_id, title, description, deadline, priority, status)
+                        VALUES (%s, %s, %s, %s, %s, %s)
+                        RETURNING id
+                        """,
+                        (task_user_id, title, description, deadline, priority, status),
+                    )
+                    new_id = cur.fetchone()[0]
+                conn.commit()
+            
+            friendly_date = format_date_friendly(deadline)
+            friendly_priority = format_priority_friendly(priority)
+            
+            response = f"""✅ Great, {user_name}! I've added your new task:
+
+📌 **{title}**
+   {description if description else '(No description)'}
+   📅 Due: {friendly_date}
+   {friendly_priority}
+   
+Task ID: {new_id}
+
+Would you like to see all your tasks? Just say "show my tasks"."""
+
+            return {"messages": [AIMessage(content=response)]}
+        except Exception as e:
+            return {"messages": [AIMessage(content=f"Sorry, I couldn't add that task: {e}")]}
+    
+    else:
+        # General AI response for other queries
+        advice = llm_generate_advice(text, tasks, user_name)
+        return {"messages": [AIMessage(content=advice)]}
 
 
 # ----------------------------
@@ -1174,6 +2265,7 @@ def build_graph():
     builder.add_node("export_tasks", export_tasks_to_csv)
     builder.add_node("import_tasks", import_tasks_from_csv)
     builder.add_node("reminders", send_reminders)
+    builder.add_node("agentic_chat", agentic_chat)  # LLM-powered reasoning node
 
     builder.add_conditional_edges(
         START,
@@ -1192,6 +2284,7 @@ def build_graph():
             "export_tasks": "export_tasks",
             "import_tasks": "import_tasks",
             "reminders": "reminders",
+            "agentic_chat": "agentic_chat",  # Route to AI reasoning
         },
     )
 
@@ -1209,6 +2302,7 @@ def build_graph():
     builder.add_edge("export_tasks", END)
     builder.add_edge("import_tasks", END)
     builder.add_edge("reminders", END)
+    builder.add_edge("agentic_chat", END)  # AI chat ends after response
 
     return builder.compile()
 

@@ -2,6 +2,7 @@
 venv/
 env/
 ENV/
+.venv/
 
 # Dependencies
 node_modules/
@@ -12,6 +13,10 @@ yarn.lock
 dist/
 build/
 *.log
+__pycache__/
+*.pyc
+.pytest_cache/
+pytest-cache-files-*/
 
 # IDE
 .vscode/
@@ -26,3 +31,19 @@ Thumbs.db
 # Environment variables
 .env
 .env.local
+
+# LaTeX/generated docs
+*.aux
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.out
+*.synctex.gz
+*.toc
+*.pdf
+*.docx
+
+# Local packaging
+prototype/
+prototype.zip

@@ -1,61 +1,73 @@
-import psycopg2
+from db_ops import get_connection
 
-# Update these as needed
-DB_NAME = "agentic_academic_db"
-DB_USER = "postgres"
-DB_PASSWORD = "Ayodele95"
-DB_HOST = "localhost"
-DB_PORT = "5432"
 
-conn = psycopg2.connect(
-    dbname=DB_NAME,
-    user=DB_USER,
-    password=DB_PASSWORD,
-    host=DB_HOST,
-    port=DB_PORT
-)
-cur = conn.cursor()
+def init_db():
+    conn = get_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS user_profiles (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(100) NOT NULL,
+                email VARCHAR(100) UNIQUE,
+                academic_program VARCHAR(100),
+                password_hash TEXT,
+                preferences JSONB,
+                history JSONB
+            );
+            """
+        )
 
-# User Profiles Table
-cur.execute("""
-CREATE TABLE IF NOT EXISTS user_profiles (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    email VARCHAR(100) UNIQUE,
-    academic_program VARCHAR(100),
-    preferences JSONB,
-    history JSONB
-);
-""")
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS tasks (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER REFERENCES user_profiles(id) ON DELETE CASCADE,
+                title VARCHAR(200) NOT NULL,
+                description TEXT,
+                deadline TIMESTAMP,
+                priority INTEGER,
+                status VARCHAR(50),
+                deleted BOOLEAN DEFAULT FALSE,
+                dependencies INTEGER[],
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            """
+        )
 
-# Tasks Table
-cur.execute("""
-CREATE TABLE IF NOT EXISTS tasks (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES user_profiles(id) ON DELETE CASCADE,
-    title VARCHAR(200) NOT NULL,
-    description TEXT,
-    deadline TIMESTAMP,
-    priority INTEGER,
-    status VARCHAR(50),
-    dependencies INTEGER[],
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-""")
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS user_sessions (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL REFERENCES user_profiles(id) ON DELETE CASCADE,
+                token_hash VARCHAR(128) NOT NULL UNIQUE,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                expires_at TIMESTAMP NOT NULL,
+                revoked BOOLEAN NOT NULL DEFAULT FALSE,
+                revoked_at TIMESTAMP
+            );
+            """
+        )
 
-# Resources Table
-cur.execute("""
-CREATE TABLE IF NOT EXISTS resources (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES user_profiles(id) ON DELETE CASCADE,
-    title VARCHAR(200),
-    link TEXT,
-    description TEXT
-);
-""")
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS resources (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER REFERENCES user_profiles(id) ON DELETE CASCADE,
+                title VARCHAR(200),
+                link TEXT,
+                description TEXT
+            );
+            """
+        )
 
-conn.commit()
-cur.close()
-conn.close()
+        conn.commit()
+        print("Database tables created successfully!")
+    finally:
+        cur.close()
+        conn.close()
 
-print("Database tables created successfully!")
+
+if __name__ == "__main__":
+    init_db()
