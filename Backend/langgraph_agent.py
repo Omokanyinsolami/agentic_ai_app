@@ -784,6 +784,15 @@ def get_db_settings() -> dict:
         raise ValueError(
             f"Missing required environment variables: {', '.join(missing)}"
         )
+
+    connect_timeout = os.getenv("DB_CONNECT_TIMEOUT", "").strip()
+    if connect_timeout:
+        settings["connect_timeout"] = int(connect_timeout)
+
+    sslmode = os.getenv("DB_SSLMODE", "").strip()
+    if sslmode:
+        settings["sslmode"] = sslmode
+
     return settings
 
 

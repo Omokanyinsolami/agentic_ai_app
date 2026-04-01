@@ -30,6 +30,7 @@ jobs:
           DB_PORT: ${{ secrets.DB_PORT }}
           DB_CONNECT_TIMEOUT: ${{ secrets.DB_CONNECT_TIMEOUT }}
           DB_SSLMODE: ${{ secrets.DB_SSLMODE }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           EMAIL_PROVIDER: ${{ secrets.EMAIL_PROVIDER }}
           BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
           BREVO_FROM_EMAIL: ${{ secrets.BREVO_FROM_EMAIL }}

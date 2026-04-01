@@ -10,6 +10,7 @@ from langgraph_agent import (
     _parse_kv_payload,
     _split_positionals_and_options,
     _validate_deadline,
+    get_db_settings,
     route,
     send_email_notification,
 )
@@ -127,3 +128,23 @@ def test_send_email_notification_uses_smtp_when_requested(monkeypatch):
 
     assert ok is True
     assert message == "smtp:user@example.com:Subject"
+
+
+def test_get_db_settings_includes_optional_hosted_db_values(monkeypatch):
+    monkeypatch.setenv("DB_NAME", "postgres")
+    monkeypatch.setenv("DB_USER", "postgres.user")
+    monkeypatch.setenv("DB_PASSWORD", "secret")
+    monkeypatch.setenv("DB_HOST", "db.example.supabase.co")
+    monkeypatch.setenv("DB_PORT", "5432")
+    monkeypatch.setenv("DB_CONNECT_TIMEOUT", "5")
+    monkeypatch.setenv("DB_SSLMODE", "require")
+
+    settings = get_db_settings()
+
+    assert settings["dbname"] == "postgres"
+    assert settings["user"] == "postgres.user"
+    assert settings["password"] == "secret"
+    assert settings["host"] == "db.example.supabase.co"
+    assert settings["port"] == "5432"
+    assert settings["connect_timeout"] == 5
+    assert settings["sslmode"] == "require"
