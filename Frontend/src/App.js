@@ -483,7 +483,7 @@ function App() {
   }, [processOfflineQueue]);
 
   useEffect(() => {
-    if (!('serviceWorker' in navigator)) return undefined;
+    if (process.env.NODE_ENV !== 'production' || !('serviceWorker' in navigator)) return undefined;
 
     const onSwMessage = (event) => {
       if (event.data?.type === 'SYNC_OFFLINE_QUEUE') {

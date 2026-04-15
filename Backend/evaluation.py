@@ -17,11 +17,21 @@ import time
 import json
 import statistics
 import csv
+import sys
 from datetime import datetime, date, timedelta
 from typing import List, Dict, Any, Tuple, Optional
 from dataclasses import dataclass, field, asdict
 from collections import defaultdict
 import random
+
+
+def safe_print(message: str = "") -> None:
+    text = str(message)
+    encoding = getattr(sys.stdout, "encoding", None) or "utf-8"
+    try:
+        print(text)
+    except UnicodeEncodeError:
+        print(text.encode(encoding, errors="replace").decode(encoding, errors="replace"))
 
 
 # ----------------------------
@@ -1088,83 +1098,83 @@ class TestRunner:
 # ----------------------------
 def run_evaluation():
     """Run the full evaluation suite and print results."""
-    print("=" * 70)
-    print("AGENTIC AI TASK MANAGEMENT - EVALUATION FRAMEWORK")
-    print("5-Week Project Timeline | MSc Academic Task Scheduling")
-    print("=" * 70)
-    print()
+    safe_print("=" * 70)
+    safe_print("AGENTIC AI TASK MANAGEMENT - EVALUATION FRAMEWORK")
+    safe_print("5-Week Project Timeline | MSc Academic Task Scheduling")
+    safe_print("=" * 70)
+    safe_print()
     
     runner = TestRunner(runs_per_scenario=10)
     results = runner.run_all_scenarios()
     
     # Print results
-    print("SCENARIO A (Standard Week - 7 days, 10 tasks):")
-    print("-" * 50)
-    print(f"  Baseline: {results['scenario_a']['baseline']['avg_conflict_rate']:.1f}% conflicts, "
+    safe_print("SCENARIO A (Standard Week - 7 days, 10 tasks):")
+    safe_print("-" * 50)
+    safe_print(f"  Baseline: {results['scenario_a']['baseline']['avg_conflict_rate']:.1f}% conflicts, "
           f"{results['scenario_a']['baseline']['avg_deadline_compliance_rate']:.1f}% compliance")
-    print(f"  Agent:    {results['scenario_a']['agent']['avg_conflict_rate']:.1f}% conflicts, "
+    safe_print(f"  Agent:    {results['scenario_a']['agent']['avg_conflict_rate']:.1f}% conflicts, "
           f"{results['scenario_a']['agent']['avg_deadline_compliance_rate']:.1f}% compliance")
-    print()
+    safe_print()
     
-    print("SCENARIO B (Deadline Compression - 3 days, 8 high-priority tasks):")
-    print("-" * 50)
-    print(f"  Baseline: {results['scenario_b']['baseline']['avg_conflict_rate']:.1f}% conflicts, "
+    safe_print("SCENARIO B (Deadline Compression - 3 days, 8 high-priority tasks):")
+    safe_print("-" * 50)
+    safe_print(f"  Baseline: {results['scenario_b']['baseline']['avg_conflict_rate']:.1f}% conflicts, "
           f"{results['scenario_b']['baseline']['avg_deadline_compliance_rate']:.1f}% compliance")
-    print(f"  Agent:    {results['scenario_b']['agent']['avg_conflict_rate']:.1f}% conflicts, "
+    safe_print(f"  Agent:    {results['scenario_b']['agent']['avg_conflict_rate']:.1f}% conflicts, "
           f"{results['scenario_b']['agent']['avg_deadline_compliance_rate']:.1f}% compliance")
-    print()
+    safe_print()
     
-    print("SCENARIO C (Disruption Adaptation - 30% time blocks removed):")
-    print("-" * 50)
-    print(f"  Baseline: {results['scenario_c']['baseline']['avg_speed']*1000:.2f}ms speed, "
+    safe_print("SCENARIO C (Disruption Adaptation - 30% time blocks removed):")
+    safe_print("-" * 50)
+    safe_print(f"  Baseline: {results['scenario_c']['baseline']['avg_speed']*1000:.2f}ms speed, "
           f"{results['scenario_c']['baseline']['avg_efficiency']:.1f}% efficiency")
-    print(f"  Agent:    {results['scenario_c']['agent']['avg_speed']*1000:.2f}ms speed, "
+    safe_print(f"  Agent:    {results['scenario_c']['agent']['avg_speed']*1000:.2f}ms speed, "
           f"{results['scenario_c']['agent']['avg_efficiency']:.1f}% efficiency")
-    print()
+    safe_print()
     
-    print("SCENARIO D (Dynamic Addition - 3 urgent tasks added):")
-    print("-" * 50)
-    print(f"  Baseline: {results['scenario_d']['baseline']['avg_conflict_rate']:.1f}% conflicts")
-    print(f"  Agent:    {results['scenario_d']['agent']['avg_conflict_rate']:.1f}% conflicts")
-    print()
+    safe_print("SCENARIO D (Dynamic Addition - 3 urgent tasks added):")
+    safe_print("-" * 50)
+    safe_print(f"  Baseline: {results['scenario_d']['baseline']['avg_conflict_rate']:.1f}% conflicts")
+    safe_print(f"  Agent:    {results['scenario_d']['agent']['avg_conflict_rate']:.1f}% conflicts")
+    safe_print()
     
-    print("SCENARIO E (5-Week MSc Project - 16 tasks, 35 days):")
-    print("-" * 50)
-    print(f"  Baseline: {results['scenario_e']['baseline']['avg_conflict_rate']:.1f}% conflicts, "
+    safe_print("SCENARIO E (5-Week MSc Project - 16 tasks, 35 days):")
+    safe_print("-" * 50)
+    safe_print(f"  Baseline: {results['scenario_e']['baseline']['avg_conflict_rate']:.1f}% conflicts, "
           f"{results['scenario_e']['baseline']['avg_deadline_compliance_rate']:.1f}% compliance, "
           f"{results['scenario_e']['baseline']['avg_workload_std']:.2f}h std")
-    print(f"  Agent:    {results['scenario_e']['agent']['avg_conflict_rate']:.1f}% conflicts, "
+    safe_print(f"  Agent:    {results['scenario_e']['agent']['avg_conflict_rate']:.1f}% conflicts, "
           f"{results['scenario_e']['agent']['avg_deadline_compliance_rate']:.1f}% compliance, "
           f"{results['scenario_e']['agent']['avg_workload_std']:.2f}h std")
-    print()
+    safe_print()
     
-    print("=" * 70)
-    print("HYPOTHESIS EVALUATION (Based on Research Questions)")
-    print("=" * 70)
-    print(f"  H1 (Agent faster):           {'✅ SUPPORTED' if results['summary']['hypothesis_h1_supported'] else '❌ NOT SUPPORTED'}")
-    print(f"  H2 (Agent better quality):   {'✅ SUPPORTED' if results['summary']['hypothesis_h2_supported'] else '❌ NOT SUPPORTED'}")
-    print(f"  H3 (Agent adapts better):    {'✅ SUPPORTED' if results['summary']['hypothesis_h3_supported'] else '❌ NOT SUPPORTED'}")
-    print()
+    safe_print("=" * 70)
+    safe_print("HYPOTHESIS EVALUATION (Based on Research Questions)")
+    safe_print("=" * 70)
+    safe_print(f"  H1 (Agent faster):           {'SUPPORTED' if results['summary']['hypothesis_h1_supported'] else 'NOT SUPPORTED'}")
+    safe_print(f"  H2 (Agent better quality):   {'SUPPORTED' if results['summary']['hypothesis_h2_supported'] else 'NOT SUPPORTED'}")
+    safe_print(f"  H3 (Agent adapts better):    {'SUPPORTED' if results['summary']['hypothesis_h3_supported'] else 'NOT SUPPORTED'}")
+    safe_print()
     
     # Print agentic behavior summary
-    print("=" * 70)
-    print("AGENTIC BEHAVIOR IMPLEMENTATION")
-    print("=" * 70)
-    print("  1. Goal-Directed Autonomy: Agent pursues conflict-free schedules")
-    print("     independently, analyzing problem feasibility before allocation")
-    print()
-    print("  2. Feedback-Based Adaptation: Agent uses backtracking when conflicts")
-    print("     are detected, iteratively refining schedule until constraints met")
-    print()
-    print("  3. Structured Reasoning: Uses Most-Constrained-Variable heuristic")
-    print("     from constraint satisfaction to prioritize difficult tasks first")
-    print()
+    safe_print("=" * 70)
+    safe_print("AGENTIC BEHAVIOR IMPLEMENTATION")
+    safe_print("=" * 70)
+    safe_print("  1. Goal-Directed Autonomy: Agent pursues conflict-free schedules")
+    safe_print("     independently, analyzing problem feasibility before allocation")
+    safe_print()
+    safe_print("  2. Feedback-Based Adaptation: Agent uses backtracking when conflicts")
+    safe_print("     are detected, iteratively refining schedule until constraints met")
+    safe_print()
+    safe_print("  3. Structured Reasoning: Uses Most-Constrained-Variable heuristic")
+    safe_print("     from constraint satisfaction to prioritize difficult tasks first")
+    safe_print()
     
     # Save detailed results
     output_file = "evaluation_results.json"
     with open(output_file, "w") as f:
         json.dump(results, f, indent=2, default=str)
-    print(f"Detailed results saved to: {output_file}")
+    safe_print(f"Detailed results saved to: {output_file}")
     
     return results
 

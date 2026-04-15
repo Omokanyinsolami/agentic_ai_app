@@ -18,7 +18,11 @@ For this specific prototype, the best free deployment layout is:
 2. `Backend API`: Render free web service
 3. `Database`: Supabase free Postgres
 4. `Reminder emails`: Brevo free transactional email API over HTTPS
-5. `Scheduled reminder trigger`: GitHub Actions scheduled workflow
+5. `Scheduled reminder trigger`: Windows Task Scheduler on the prototype machine (GitHub Actions optional)
+
+For the Supabase-hosted always-on reminder route, see:
+
+- `SUPABASE_BREVO_BABY_STEPS.md`
 
 This layout is recommended because:
 
@@ -26,7 +30,7 @@ This layout is recommended because:
 - Render free works for the Flask backend, but its free tier blocks outbound SMTP ports.
 - Brevo's HTTP API avoids that SMTP restriction and keeps reminder emails working on a free backend.
 - A free hosted Postgres database is more stable than relying on a temporary local database for deployment.
-- GitHub Actions can run the daily reminder script on a schedule without needing a paid cron host.
+- For a dissertation prototype running from your own machine, Windows Task Scheduler is the preferred free scheduler because it does not require hosted secrets or a hosted database client path beyond the app itself.
 
 ---
 
@@ -250,7 +254,7 @@ REACT_APP_API_URL=https://your-backend-url.com
 ## Automatic Email Reminder Schedule
 
 The backend includes a scheduler-friendly reminder runner at `Backend/daily_reminder.py`.
-It checks all users who have incomplete tasks due within the configured reminder window and
+It checks all users who have incomplete tasks due within the configured reminder window or already overdue and
 then triggers the existing reminder workflow for each matching user. The default reminder
 window is `5` days and can be changed with `REMINDER_LOOKAHEAD_DAYS` in `Backend/.env`
 or with the `--days` command-line flag.
@@ -271,7 +275,7 @@ If you want to test the reminder selection without sending email:
 
 ### What it does
 
-- selects users who have at least one incomplete task due within the next `5` days
+- selects users who have at least one incomplete task due within the next `5` days or already overdue
 - skips users with no email address on file
 - calls the existing `reminders:` workflow for each matching user
 - sends a reminder email if SMTP is configured
@@ -291,7 +295,7 @@ Suggested schedule:
 - run daily at `08:00`
 - keep `--days 5` for a rolling 5-day countdown reminder window
 
-This means a task due in five days can appear in daily reminder emails until it is completed
+This means a task due in five days can appear in daily reminder emails until it is completed, and overdue pending tasks can continue appearing until they are completed
 or the deadline passes. If you only want to test a specific user, add:
 
 ```bash
@@ -308,9 +312,9 @@ On Linux, add a cron entry like this:
 
 This runs every day at `08:00` and appends output to a log file.
 
-### Free scheduler option: GitHub Actions
+### Optional free scheduler: GitHub Actions
 
-The repository includes a scheduled workflow:
+The repository also includes a scheduled workflow for cases where you want cloud-based automation and your database/email services are hosted:
 
 - `.github/workflows/daily-reminders.yml`
 

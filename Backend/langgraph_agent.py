@@ -834,6 +834,29 @@ def format_date_friendly(date_val) -> str:
         return str(date_val)[:10]
 
 
+def format_reminder_timing(deadline, today: Optional[date] = None) -> str:
+    """Describe whether a task is overdue, due today, or due within N days."""
+    today = today or date.today()
+    try:
+        if hasattr(deadline, "date"):
+            due_date = deadline.date() if not isinstance(deadline, date) else deadline
+        elif isinstance(deadline, date):
+            due_date = deadline
+        else:
+            due_date = datetime.strptime(str(deadline)[:10], "%Y-%m-%d").date()
+    except Exception:
+        return "Timing unavailable"
+
+    delta_days = (due_date - today).days
+    if delta_days < 0:
+        return f"🚨 Overdue by {abs(delta_days)} day(s)"
+    if delta_days == 0:
+        return "⏳ Due today"
+    if delta_days == 1:
+        return "📅 Due in 1 day"
+    return f"📅 Due in {delta_days} days"
+
+
 def format_priority_friendly(priority) -> str:
     """Convert priority number to friendly label."""
     try:
@@ -1993,11 +2016,12 @@ def send_reminders(state: AgentState) -> dict:
                     FROM tasks
                     WHERE user_id = %s
                       AND deadline IS NOT NULL
-                      AND deadline BETWEEN %s AND %s
-                      AND LOWER(status) NOT IN ('done', 'completed')
+                      AND deadline <= %s
+                      AND LOWER(COALESCE(status, 'pending')) NOT IN ('done', 'completed')
+                      AND (deleted = FALSE OR deleted IS NULL)
                     ORDER BY deadline ASC, priority DESC
                     """,
-                    (user_id, today.isoformat(), cutoff.isoformat()),
+                    (user_id, cutoff.isoformat()),
                 )
                 rows = cur.fetchall()
 
@@ -2021,24 +2045,38 @@ def send_reminders(state: AgentState) -> dict:
             return {
                 "messages": [
                     AIMessage(
-                        content=f"🎉 Great news, {first_name}! You have no urgent tasks due in the next {days} day(s). Keep up the good work!"
+                        content=f"🎉 Great news, {first_name}! You have no pending tasks due in the next {days} day(s) and no overdue tasks. Keep up the good work!"
                     )
                 ]
             }
 
-        # Build friendly reminder message
+        overdue_count = 0
+        due_soon_count = 0
+        for _, deadline, _, _ in rows:
+            timing = format_reminder_timing(deadline, today=today)
+            if timing.startswith("🚨"):
+                overdue_count += 1
+            else:
+                due_soon_count += 1
+
         task_count = len(rows)
         lines = [
             f"⏰ Hey {first_name}! Here's your reminder:\n",
-            f"You have **{task_count} task{'s' if task_count > 1 else ''}** due in the next {days} day(s):\n",
+            (
+                f"You have **{task_count} pending task{'s' if task_count > 1 else ''}** "
+                f"that are due in the next {days} day(s) or already overdue.\n"
+            ),
+            f"Due soon: **{due_soon_count}** | Overdue: **{overdue_count}**\n",
             "─" * 35
         ]
         
         for title, deadline, priority, status in rows:
             friendly_date = format_date_friendly(deadline)
             friendly_priority = format_priority_friendly(priority)
+            timing = format_reminder_timing(deadline, today=today)
             lines.append(f"\n📌 **{title}**")
             lines.append(f"   📅 Due: {friendly_date}")
+            lines.append(f"   {timing}")
             lines.append(f"   {friendly_priority}")
 
         lines.append("\n" + "─" * 35)
@@ -2047,7 +2085,10 @@ def send_reminders(state: AgentState) -> dict:
 
         if send_email:
             if email:
-                subject = f"⏰ Task Reminder: {task_count} task(s) due soon"
+                if overdue_count:
+                    subject = f"🚨 Reminder: {overdue_count} overdue, {due_soon_count} due soon"
+                else:
+                    subject = f"⏰ Task Reminder: {task_count} task(s) due soon"
                 email_body = summary.replace("**", "")  # Remove markdown for email
                 ok, message = send_email_notification(email, subject, email_body)
                 if ok:

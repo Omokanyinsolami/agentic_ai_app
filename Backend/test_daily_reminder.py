@@ -12,7 +12,7 @@ def test_run_scheduled_reminders_returns_zero_when_no_due_users(monkeypatch, cap
     exit_code = daily_reminder.run_scheduled_reminders(days=5, send_email=True)
 
     assert exit_code == 0
-    assert "No users have incomplete tasks due within the next 5 day(s)." in capsys.readouterr().out
+    assert "No users have incomplete tasks due within the next 5 day(s) or already overdue." in capsys.readouterr().out
 
 
 def test_run_scheduled_reminders_processes_each_matching_user(monkeypatch, capsys):

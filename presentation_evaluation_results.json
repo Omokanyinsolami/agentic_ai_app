@@ -1,0 +1,503 @@
+{
+  "scenario_a": {
+    "baseline": {
+      "avg_generation_time": 6.492932637532552e-05,
+      "avg_conflict_rate": 30.0,
+      "avg_deadline_compliance_rate": 100.0,
+      "avg_workload_std": 1.0919397103940465,
+      "std_generation_time": 1.6258562221458705e-05,
+      "std_conflict_rate": 0.0
+    },
+    "agent": {
+      "avg_generation_time": 0.0001929601033528646,
+      "avg_conflict_rate": 33.333333333333336,
+      "avg_deadline_compliance_rate": 100.0,
+      "avg_workload_std": 0.8097761822210403,
+      "std_generation_time": 2.528848374241479e-05,
+      "std_conflict_rate": 5.773502691896257
+    },
+    "raw_baseline": [
+      {
+        "schedule_generation_time": 8.368492126464844e-05,
+        "conflict_count": 3,
+        "conflict_rate": 30.0,
+        "deadline_compliance_count": 10,
+        "deadline_compliance_rate": 100.0,
+        "workload_distribution_std": 0.4493290937120929,
+        "daily_hours": {
+          "2026-04-10": 5.660743876677071,
+          "2026-04-11": 6.339120447573706,
+          "2026-04-09": 6.728657566507868,
+          "2026-04-12": 6.073271080826967
+        },
+        "conflicts": [
+          "Task 'Task A2' overlaps with locked block",
+          "Task 'Task A8' overlaps with locked block",
+          "Task 'Task A9' overlaps with locked block"
+        ]
+      },
+      {
+        "schedule_generation_time": 5.4836273193359375e-05,
+        "conflict_count": 3,
+        "conflict_rate": 30.0,
+        "deadline_compliance_count": 10,
+        "deadline_compliance_rate": 100.0,
+        "workload_distribution_std": 1.215420822470961,
+        "daily_hours": {
+          "2026-04-10": 6.262404327035165,
+          "2026-04-09": 6.330460025669075,
+          "2026-04-11": 5.585477649342365,
+          "2026-04-12": 3.7235087945712255
+        },
+        "conflicts": [
+          "Task 'Task A5' overlaps with locked block",
+          "Task 'Task A7' overlaps with locked block",
+          "Task 'Task A8' overlaps with locked block"
+        ]
+      },
+      {
+        "schedule_generation_time": 5.626678466796875e-05,
+        "conflict_count": 3,
+        "conflict_rate": 30.0,
+        "deadline_compliance_count": 10,
+        "deadline_compliance_rate": 100.0,
+        "workload_distribution_std": 1.6110692149990855,
+        "daily_hours": {
+          "2026-04-13": 2.2459424793679257,
+          "2026-04-11": 6.3370691592670685,
+          "2026-04-09": 5.679950844836224,
+          "2026-04-10": 5.721594958538507,
+          "2026-04-12": 4.813737054371579
+        },
+        "conflicts": [
+          "Task 'Task A1' overlaps with locked block",
+          "Task 'Task A2' overlaps with locked block",
+          "Task 'Task A7' overlaps with locked block"
+        ]
+      }
+    ],
+    "raw_agent": [
+      {
+        "schedule_generation_time": 0.0002200603485107422,
+        "conflict_count": 3,
+        "conflict_rate": 30.0,
+        "deadline_compliance_count": 10,
+        "deadline_compliance_rate": 100.0,
+        "workload_distribution_std": 0.5148559032636638,
+        "daily_hours": {
+          "2026-04-10": 5.578356773592672,
+          "2026-04-11": 6.339120447573706,
+          "2026-04-09": 6.811044669592265,
+          "2026-04-12": 6.073271080826967
+        },
+        "conflicts": [
+          "Task 'Task A2' overlaps with locked block",
+          "Task 'Task A8' overlaps with locked block",
+          "Task 'Task A9' overlaps with locked block"
+        ]
+      },
+      {
+        "schedule_generation_time": 0.0001888275146484375,
+        "conflict_count": 4,
+        "conflict_rate": 40.0,
+        "deadline_compliance_count": 10,
+        "deadline_compliance_rate": 100.0,
+        "workload_distribution_std": 1.1898918905108355,
+        "daily_hours": {
+          "2026-04-11": 6.073773677726953,
+          "2026-04-10": 5.774108298650578,
+          "2026-04-09": 6.330460025669075,
+          "2026-04-12": 3.7235087945712255
+        },
+        "conflicts": [
+          "Task 'Task A4' overlaps with locked block",
+          "Task 'Task A5' overlaps with locked block",
+          "Task 'Task A6' overlaps with locked block",
+          "Task 'Task A8' overlaps with locked block"
+        ]
+      },
+      {
+        "schedule_generation_time": 0.00016999244689941406,
+        "conflict_count": 3,
+        "conflict_rate": 30.0,
+        "deadline_compliance_count": 10,
+        "deadline_compliance_rate": 100.0,
+        "workload_distribution_std": 0.7245807528886217,
+        "daily_hours": {
+          "2026-04-13": 4.453842306603051,
+          "2026-04-12": 5.550482503503893,
+          "2026-04-10": 5.408833412906775,
+          "2026-04-11": 3.9340454216413097,
+          "2026-04-09": 5.451090851726276
+        },
+        "conflicts": [
+          "Task 'Task A1' overlaps with locked block",
+          "Task 'Task A6' overlaps with locked block",
+          "Task 'Task A7' overlaps with locked block"
+        ]
+      }
+    ]
+  },
+  "scenario_b": {
+    "baseline": {
+      "avg_generation_time": 9.242693583170573e-05,
+      "avg_conflict_rate": 54.166666666666664,
+      "avg_deadline_compliance_rate": 62.5,
+      "avg_workload_std": 1.001284999129863,
+      "std_generation_time": 4.917283249812316e-05,
+      "std_conflict_rate": 14.433756729740644
+    },
+    "agent": {
+      "avg_generation_time": 0.00021560986836751303,
+      "avg_conflict_rate": 54.166666666666664,
+      "avg_deadline_compliance_rate": 62.5,
+      "avg_workload_std": 1.0252868601634126,
+      "std_generation_time": 5.9943349429571275e-05,
+      "std_conflict_rate": 14.433756729740644
+    },
+    "raw_baseline": [
+      {
+        "schedule_generation_time": 0.0001475811004638672,
+        "conflict_count": 5,
+        "conflict_rate": 62.5,
+        "deadline_compliance_count": 4,
+        "deadline_compliance_rate": 50.0,
+        "workload_distribution_std": 1.4040268956627477,
+        "daily_hours": {
+          "2026-04-09": 6.0110530940225315,
+          "2026-04-10": 3.982532610314185,
+          "2026-04-11": 3.3152153021829704
+        },
+        "conflicts": [
+          "Task 'Task B2' (ID:2) could not be scheduled",
+          "Task 'Task B3' (ID:3) could not be scheduled",
+          "Task 'Task B4' (ID:4) could not be scheduled",
+          "Task 'Task B5' (ID:5) could not be scheduled",
+          "Task 'Task B6' overlaps with locked block"
+        ]
+      },
+      {
+        "schedule_generation_time": 7.653236389160156e-05,
+        "conflict_count": 5,
+        "conflict_rate": 62.5,
+        "deadline_compliance_count": 4,
+        "deadline_compliance_rate": 50.0,
+        "workload_distribution_std": 0.6642038607884342,
+        "daily_hours": {
+          "2026-04-10": 5.050560604600991,
+          "2026-04-09": 5.989886712708566
+        },
+        "conflicts": [
+          "Task 'Task B2' (ID:2) could not be scheduled",
+          "Task 'Task B3' (ID:3) could not be scheduled",
+          "Task 'Task B4' (ID:4) could not be scheduled",
+          "Task 'Task B5' overlaps with locked block",
+          "Task 'Task B8' (ID:8) could not be scheduled"
+        ]
+      },
+      {
+        "schedule_generation_time": 5.316734313964844e-05,
+        "conflict_count": 3,
+        "conflict_rate": 37.5,
+        "deadline_compliance_count": 7,
+        "deadline_compliance_rate": 87.5,
+        "workload_distribution_std": 0.9356242409384069,
+        "daily_hours": {
+          "2026-04-09": 5.910227485956195,
+          "2026-04-12": 3.698222537105706,
+          "2026-04-10": 4.928555531051106,
+          "2026-04-11": 5.320908567466374
+        },
+        "conflicts": [
+          "Task 'Task B1' (ID:1) could not be scheduled",
+          "Task 'Task B3' overlaps with locked block",
+          "Task 'Task B8' overlaps with locked block"
+        ]
+      }
+    ],
+    "raw_agent": [
+      {
+        "schedule_generation_time": 0.00028324127197265625,
+        "conflict_count": 5,
+        "conflict_rate": 62.5,
+        "deadline_compliance_count": 4,
+        "deadline_compliance_rate": 50.0,
+        "workload_distribution_std": 1.4040268956627477,
+        "daily_hours": {
+          "2026-04-09": 6.0110530940225315,
+          "2026-04-10": 3.982532610314185,
+          "2026-04-11": 3.3152153021829704
+        },
+        "conflicts": [
+          "Task 'Task B2' (ID:2) could not be scheduled",
+          "Task 'Task B3' (ID:3) could not be scheduled",
+          "Task 'Task B4' (ID:4) could not be scheduled",
+          "Task 'Task B5' (ID:5) could not be scheduled",
+          "Task 'Task B6' overlaps with locked block"
+        ]
+      },
+      {
+        "schedule_generation_time": 0.000194549560546875,
+        "conflict_count": 5,
+        "conflict_rate": 62.5,
+        "deadline_compliance_count": 4,
+        "deadline_compliance_rate": 50.0,
+        "workload_distribution_std": 0.6642038607884342,
+        "daily_hours": {
+          "2026-04-10": 5.050560604600991,
+          "2026-04-09": 5.989886712708566
+        },
+        "conflicts": [
+          "Task 'Task B2' (ID:2) could not be scheduled",
+          "Task 'Task B3' (ID:3) could not be scheduled",
+          "Task 'Task B4' (ID:4) could not be scheduled",
+          "Task 'Task B5' overlaps with locked block",
+          "Task 'Task B8' (ID:8) could not be scheduled"
+        ]
+      },
+      {
+        "schedule_generation_time": 0.0001690387725830078,
+        "conflict_count": 3,
+        "conflict_rate": 37.5,
+        "deadline_compliance_count": 7,
+        "deadline_compliance_rate": 87.5,
+        "workload_distribution_std": 1.0076298240390558,
+        "daily_hours": {
+          "2026-04-09": 5.910227485956195,
+          "2026-04-12": 3.698222537105706,
+          "2026-04-10": 5.623102332670766,
+          "2026-04-11": 4.626361765846714
+        },
+        "conflicts": [
+          "Task 'Task B1' (ID:1) could not be scheduled",
+          "Task 'Task B3' overlaps with locked block",
+          "Task 'Task B6' overlaps with locked block"
+        ]
+      }
+    ]
+  },
+  "scenario_c": {
+    "baseline": {
+      "avg_speed": 6.047884623209635e-05,
+      "avg_tasks_moved": 8,
+      "avg_efficiency": 20.0
+    },
+    "agent": {
+      "avg_speed": 0.0001998742421468099,
+      "avg_tasks_moved": 8,
+      "avg_efficiency": 20.0
+    }
+  },
+  "scenario_d": {
+    "baseline": {
+      "avg_speed": 6.612141927083333e-05,
+      "avg_conflict_rate": 21.21212121212121,
+      "avg_compliance_rate": 100.0
+    },
+    "agent": {
+      "avg_speed": 0.00018994013468424478,
+      "avg_conflict_rate": 21.21212121212121,
+      "avg_compliance_rate": 100.0
+    }
+  },
+  "scenario_e": {
+    "baseline": {
+      "avg_generation_time": 0.0006709893544514974,
+      "avg_conflict_rate": 81.25,
+      "avg_deadline_compliance_rate": 18.75,
+      "avg_workload_std": 0.0,
+      "std_generation_time": 8.84517933460507e-05,
+      "std_conflict_rate": 0.0
+    },
+    "agent": {
+      "avg_generation_time": 0.0005013942718505859,
+      "avg_conflict_rate": 81.25,
+      "avg_deadline_compliance_rate": 18.75,
+      "avg_workload_std": 0.0,
+      "std_generation_time": 7.454956676896292e-05,
+      "std_conflict_rate": 0.0
+    },
+    "raw_baseline": [
+      {
+        "schedule_generation_time": 0.0007281303405761719,
+        "conflict_count": 13,
+        "conflict_rate": 81.25,
+        "deadline_compliance_count": 3,
+        "deadline_compliance_rate": 18.75,
+        "workload_distribution_std": 0.0,
+        "daily_hours": {
+          "2026-04-09": 6.0
+        },
+        "conflicts": [
+          "Task 'Literature Review Chapter 1' (ID:1) could not be scheduled",
+          "Task 'System design document' (ID:4) could not be scheduled",
+          "Task 'Database schema design' (ID:5) could not be scheduled",
+          "Task 'API specification' (ID:6) could not be scheduled",
+          "Task 'Backend core implementation' (ID:7) could not be scheduled",
+          "Task 'Frontend UI components' (ID:8) could not be scheduled",
+          "Task 'Unit tests' (ID:9) could not be scheduled",
+          "Task 'Integration testing' (ID:10) could not be scheduled",
+          "Task 'Bug fixes and refinement' (ID:11) could not be scheduled",
+          "Task 'Documentation' (ID:12) could not be scheduled",
+          "Task 'Run evaluation experiments' (ID:13) could not be scheduled",
+          "Task 'Write results chapter' (ID:14) could not be scheduled",
+          "Task 'Final dissertation review' (ID:15) could not be scheduled"
+        ]
+      },
+      {
+        "schedule_generation_time": 0.0007157325744628906,
+        "conflict_count": 13,
+        "conflict_rate": 81.25,
+        "deadline_compliance_count": 3,
+        "deadline_compliance_rate": 18.75,
+        "workload_distribution_std": 0.0,
+        "daily_hours": {
+          "2026-04-09": 6.0
+        },
+        "conflicts": [
+          "Task 'Literature Review Chapter 1' (ID:1) could not be scheduled",
+          "Task 'System design document' (ID:4) could not be scheduled",
+          "Task 'Database schema design' (ID:5) could not be scheduled",
+          "Task 'API specification' (ID:6) could not be scheduled",
+          "Task 'Backend core implementation' (ID:7) could not be scheduled",
+          "Task 'Frontend UI components' (ID:8) could not be scheduled",
+          "Task 'Unit tests' (ID:9) could not be scheduled",
+          "Task 'Integration testing' (ID:10) could not be scheduled",
+          "Task 'Bug fixes and refinement' (ID:11) could not be scheduled",
+          "Task 'Documentation' (ID:12) could not be scheduled",
+          "Task 'Run evaluation experiments' (ID:13) could not be scheduled",
+          "Task 'Write results chapter' (ID:14) could not be scheduled",
+          "Task 'Final dissertation review' (ID:15) could not be scheduled"
+        ]
+      },
+      {
+        "schedule_generation_time": 0.0005691051483154297,
+        "conflict_count": 13,
+        "conflict_rate": 81.25,
+        "deadline_compliance_count": 3,
+        "deadline_compliance_rate": 18.75,
+        "workload_distribution_std": 0.0,
+        "daily_hours": {
+          "2026-04-09": 6.0
+        },
+        "conflicts": [
+          "Task 'Literature Review Chapter 1' (ID:1) could not be scheduled",
+          "Task 'System design document' (ID:4) could not be scheduled",
+          "Task 'Database schema design' (ID:5) could not be scheduled",
+          "Task 'API specification' (ID:6) could not be scheduled",
+          "Task 'Backend core implementation' (ID:7) could not be scheduled",
+          "Task 'Frontend UI components' (ID:8) could not be scheduled",
+          "Task 'Unit tests' (ID:9) could not be scheduled",
+          "Task 'Integration testing' (ID:10) could not be scheduled",
+          "Task 'Bug fixes and refinement' (ID:11) could not be scheduled",
+          "Task 'Documentation' (ID:12) could not be scheduled",
+          "Task 'Run evaluation experiments' (ID:13) could not be scheduled",
+          "Task 'Write results chapter' (ID:14) could not be scheduled",
+          "Task 'Final dissertation review' (ID:15) could not be scheduled"
+        ]
+      }
+    ],
+    "raw_agent": [
+      {
+        "schedule_generation_time": 0.0004596710205078125,
+        "conflict_count": 13,
+        "conflict_rate": 81.25,
+        "deadline_compliance_count": 3,
+        "deadline_compliance_rate": 18.75,
+        "workload_distribution_std": 0.0,
+        "daily_hours": {
+          "2026-04-09": 6.0
+        },
+        "conflicts": [
+          "Task 'Literature Review Chapter 1' (ID:1) could not be scheduled",
+          "Task 'System design document' (ID:4) could not be scheduled",
+          "Task 'Database schema design' (ID:5) could not be scheduled",
+          "Task 'API specification' (ID:6) could not be scheduled",
+          "Task 'Backend core implementation' (ID:7) could not be scheduled",
+          "Task 'Frontend UI components' (ID:8) could not be scheduled",
+          "Task 'Unit tests' (ID:9) could not be scheduled",
+          "Task 'Integration testing' (ID:10) could not be scheduled",
+          "Task 'Bug fixes and refinement' (ID:11) could not be scheduled",
+          "Task 'Documentation' (ID:12) could not be scheduled",
+          "Task 'Run evaluation experiments' (ID:13) could not be scheduled",
+          "Task 'Write results chapter' (ID:14) could not be scheduled",
+          "Task 'Final dissertation review' (ID:15) could not be scheduled"
+        ]
+      },
+      {
+        "schedule_generation_time": 0.00058746337890625,
+        "conflict_count": 13,
+        "conflict_rate": 81.25,
+        "deadline_compliance_count": 3,
+        "deadline_compliance_rate": 18.75,
+        "workload_distribution_std": 0.0,
+        "daily_hours": {
+          "2026-04-09": 6.0
+        },
+        "conflicts": [
+          "Task 'Literature Review Chapter 1' (ID:1) could not be scheduled",
+          "Task 'System design document' (ID:4) could not be scheduled",
+          "Task 'Database schema design' (ID:5) could not be scheduled",
+          "Task 'API specification' (ID:6) could not be scheduled",
+          "Task 'Backend core implementation' (ID:7) could not be scheduled",
+          "Task 'Frontend UI components' (ID:8) could not be scheduled",
+          "Task 'Unit tests' (ID:9) could not be scheduled",
+          "Task 'Integration testing' (ID:10) could not be scheduled",
+          "Task 'Bug fixes and refinement' (ID:11) could not be scheduled",
+          "Task 'Documentation' (ID:12) could not be scheduled",
+          "Task 'Run evaluation experiments' (ID:13) could not be scheduled",
+          "Task 'Write results chapter' (ID:14) could not be scheduled",
+          "Task 'Final dissertation review' (ID:15) could not be scheduled"
+        ]
+      },
+      {
+        "schedule_generation_time": 0.0004570484161376953,
+        "conflict_count": 13,
+        "conflict_rate": 81.25,
+        "deadline_compliance_count": 3,
+        "deadline_compliance_rate": 18.75,
+        "workload_distribution_std": 0.0,
+        "daily_hours": {
+          "2026-04-09": 6.0
+        },
+        "conflicts": [
+          "Task 'Literature Review Chapter 1' (ID:1) could not be scheduled",
+          "Task 'System design document' (ID:4) could not be scheduled",
+          "Task 'Database schema design' (ID:5) could not be scheduled",
+          "Task 'API specification' (ID:6) could not be scheduled",
+          "Task 'Backend core implementation' (ID:7) could not be scheduled",
+          "Task 'Frontend UI components' (ID:8) could not be scheduled",
+          "Task 'Unit tests' (ID:9) could not be scheduled",
+          "Task 'Integration testing' (ID:10) could not be scheduled",
+          "Task 'Bug fixes and refinement' (ID:11) could not be scheduled",
+          "Task 'Documentation' (ID:12) could not be scheduled",
+          "Task 'Run evaluation experiments' (ID:13) could not be scheduled",
+          "Task 'Write results chapter' (ID:14) could not be scheduled",
+          "Task 'Final dissertation review' (ID:15) could not be scheduled"
+        ]
+      }
+    ]
+  },
+  "summary": {
+    "hypothesis_h1_supported": false,
+    "hypothesis_h2_supported": false,
+    "hypothesis_h3_supported": true,
+    "details": {
+      "generation_time_comparison": {
+        "agent": 0.0001929601033528646,
+        "baseline": 6.492932637532552e-05,
+        "improvement_pct": -197.18482252141985
+      },
+      "quality_comparison": {
+        "agent_conflict_rate": 33.333333333333336,
+        "baseline_conflict_rate": 30.0,
+        "agent_compliance_rate": 100.0,
+        "baseline_compliance_rate": 100.0
+      },
+      "adaptation_comparison": {
+        "agent_efficiency": 20.0,
+        "baseline_efficiency": 20.0
+      }
+    }
+  }
+}

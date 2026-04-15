@@ -5,6 +5,7 @@ from pathlib import Path
 
 from docx import Document
 from docx.enum.section import WD_SECTION_START
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Mm, Pt
@@ -83,6 +84,31 @@ class OutlineEntry:
     title: str
 
 
+@dataclass
+class HeadingCounters:
+    section: int = 0
+    subsection: int = 0
+    subsubsection: int = 0
+
+
+@dataclass
+class BibEntry:
+    key: str
+    entry_type: str
+    raw_author: str
+    year: str
+    title: str
+    journal: str
+    booktitle: str
+    publisher: str
+    howpublished: str
+    note: str
+    volume: str
+    number: str
+    pages: str
+    doi: str
+
+
 def replace_commands_with_arg(text: str, commands: list[str]) -> str:
     for command in commands:
         text = re.sub(rf"\\{command}\*?\{{([^{{}}]*)\}}", r"\1", text)
@@ -121,9 +147,7 @@ def clean_inline(text: str) -> str:
         return ""
 
     text = re.sub(r"(?<!\\)%.*$", "", text).strip()
-    text = re.sub(r"\\parencite\{[^}]*\}", "", text)
-    text = re.sub(r"\\textcite\{[^}]*\}", "", text)
-    text = re.sub(r"\\cite\{[^}]*\}", "", text)
+    text = replace_citation_commands(text)
     text = re.sub(r"\\url\{([^}]*)\}", r"\1", text)
     text = re.sub(r"\\ref\{([^}]*)\}", r"\1", text)
     text = re.sub(r"\\label\{[^}]*\}", "", text)
@@ -208,12 +232,24 @@ def extract_bib_field(block: str, field_name: str) -> str:
     return block[index:end_index].strip()
 
 
-def parse_bib_entries(bib_path: Path) -> list[str]:
+def clean_bib_field(text: str) -> str:
+    if not text:
+        return ""
+    text = re.sub(r"\\url\{([^}]*)\}", r"\1", text)
+    text = replace_commands_with_arg(
+        text,
+        ["texttt", "textbf", "emph", "textit", "underline", "textsc", "texorpdfstring"],
+    )
+    text = re.sub(r"\\[a-zA-Z]+\*?(?:\[[^\]]*\])?", "", text)
+    return latex_to_text(text)
+
+
+def parse_bib_database(bib_path: Path) -> dict[str, BibEntry]:
     if not bib_path.exists():
-        return []
+        return {}
 
     data = bib_path.read_text(encoding="utf-8", errors="ignore")
-    entries = []
+    entries: dict[str, BibEntry] = {}
     for block in re.split(r"\n@", "\n" + data):
         block = block.strip()
         if not block:
@@ -226,33 +262,196 @@ def parse_bib_entries(bib_path: Path) -> list[str]:
             continue
 
         key = latex_to_text(entry_match.group(2).strip())
-        author = latex_to_text(extract_bib_field(block, "author"))
-        year = latex_to_text(extract_bib_field(block, "year"))
-        title = latex_to_text(extract_bib_field(block, "title"))
-        journal = latex_to_text(extract_bib_field(block, "journal"))
-        booktitle = latex_to_text(extract_bib_field(block, "booktitle"))
-        publisher = latex_to_text(extract_bib_field(block, "publisher"))
-        doi = latex_to_text(extract_bib_field(block, "doi"))
-
-        source = journal or booktitle or publisher
-        parts = []
-        if author:
-            parts.append(author)
-        if year:
-            parts.append(f"({year})")
-        if title:
-            parts.append(title)
-        if source:
-            parts.append(source)
-        if doi:
-            parts.append(f"doi:{doi}")
-        if not parts:
-            parts.append(key)
-
-        entries.append(" ".join(parts).strip())
-
-    entries.sort(key=lambda item: item.lower())
+        entries[key] = BibEntry(
+            key=key,
+            entry_type=entry_match.group(1).lower(),
+            raw_author=extract_bib_field(block, "author"),
+            year=clean_bib_field(extract_bib_field(block, "year")),
+            title=clean_bib_field(extract_bib_field(block, "title")),
+            journal=clean_bib_field(extract_bib_field(block, "journal")),
+            booktitle=clean_bib_field(extract_bib_field(block, "booktitle")),
+            publisher=clean_bib_field(extract_bib_field(block, "publisher")),
+            howpublished=clean_bib_field(extract_bib_field(block, "howpublished")),
+            note=clean_bib_field(extract_bib_field(block, "note")),
+            volume=clean_bib_field(extract_bib_field(block, "volume")),
+            number=clean_bib_field(extract_bib_field(block, "number")),
+            pages=clean_bib_field(extract_bib_field(block, "pages")),
+            doi=clean_bib_field(extract_bib_field(block, "doi")),
+        )
     return entries
+
+
+def split_bib_authors(raw_author: str) -> list[str]:
+    if not raw_author:
+        return []
+
+    authors = []
+    for part in re.split(r"\s+and\s+", raw_author):
+        part = part.strip()
+        if not part or part.lower() == "others":
+            continue
+        authors.append(part)
+    return authors
+
+
+def is_corporate_author(raw_author: str) -> bool:
+    stripped = raw_author.strip()
+    return stripped.startswith("{") and stripped.endswith("}")
+
+
+def clean_author_name(raw_author: str) -> str:
+    return latex_to_text(raw_author.strip().strip("{}"))
+
+
+def author_surname(raw_author: str) -> str:
+    if not raw_author:
+        return "Unknown"
+    if is_corporate_author(raw_author):
+        return clean_author_name(raw_author)
+
+    clean = clean_author_name(raw_author)
+    if "," in clean:
+        return clean.split(",", 1)[0].strip()
+
+    tokens = clean.split()
+    return tokens[-1] if tokens else clean
+
+
+def author_initials(raw_author: str) -> str:
+    clean = clean_author_name(raw_author)
+    if "," in clean:
+        given_names = clean.split(",", 1)[1].strip()
+    else:
+        parts = clean.split()
+        given_names = " ".join(parts[:-1])
+
+    initials = []
+    for token in re.split(r"[\s\-]+", given_names):
+        token = token.strip()
+        if token:
+            initials.append(f"{token[0].upper()}.")
+    return " ".join(initials)
+
+
+def format_author_for_reference(raw_author: str) -> str:
+    if not raw_author:
+        return "Unknown"
+    if is_corporate_author(raw_author):
+        return clean_author_name(raw_author)
+
+    surname = author_surname(raw_author)
+    initials = author_initials(raw_author)
+    return f"{surname}, {initials}".strip().rstrip(",")
+
+
+def format_author_list_for_reference(raw_author: str) -> str:
+    authors = split_bib_authors(raw_author)
+    if not authors:
+        return "Unknown"
+
+    formatted = [format_author_for_reference(author) for author in authors]
+    if len(formatted) == 1:
+        return formatted[0]
+    if len(formatted) == 2:
+        return f"{formatted[0]} & {formatted[1]}"
+    if len(formatted) <= 6:
+        return ", ".join(formatted[:-1]) + f" & {formatted[-1]}"
+    return f"{formatted[0]} et al."
+
+
+def format_author_list_for_citation(raw_author: str) -> str:
+    authors = split_bib_authors(raw_author)
+    if not authors:
+        return "Unknown"
+
+    surnames = [author_surname(author) for author in authors]
+    if len(surnames) == 1:
+        return surnames[0]
+    if len(surnames) == 2:
+        return f"{surnames[0]} & {surnames[1]}"
+    return f"{surnames[0]} et al."
+
+
+def format_pages(pages: str) -> str:
+    if not pages:
+        return ""
+    return f"pp. {pages.replace('--', '–').replace('-', '–')}"
+
+
+def format_reference_entry(entry: BibEntry) -> str:
+    author = format_author_list_for_reference(entry.raw_author)
+    year = entry.year or "n.d."
+    title = f"'{entry.title}'" if entry.title else ""
+    source = entry.journal or entry.booktitle
+    vol_issue = ""
+    if entry.volume:
+        vol_issue = entry.volume
+        if entry.number:
+            vol_issue += f"({entry.number})"
+    pages = format_pages(entry.pages)
+
+    parts = [f"{author} ({year})"]
+    if title:
+        parts.append(title)
+    if source:
+        parts.append(source)
+    if vol_issue:
+        parts.append(vol_issue)
+    if pages:
+        parts.append(pages)
+    if entry.publisher and entry.publisher not in parts:
+        parts.append(entry.publisher)
+    if entry.howpublished:
+        parts.append(f"Available at: {entry.howpublished}")
+    if entry.note:
+        parts.append(f"({entry.note})")
+    if entry.doi:
+        parts.append(f"doi:{entry.doi}")
+
+    return ", ".join(part for part in parts if part).rstrip(".") + "."
+
+
+def parse_bib_entries(bib_path: Path) -> list[str]:
+    database = parse_bib_database(bib_path)
+    entries = sorted(
+        database.values(),
+        key=lambda entry: (
+            format_author_list_for_citation(entry.raw_author).lower(),
+            (entry.year or "").lower(),
+            (entry.title or "").lower(),
+        ),
+    )
+    return [format_reference_entry(entry) for entry in entries]
+
+
+BIB_DATABASE = parse_bib_database(REF_BIB)
+
+
+def format_citation(keys_text: str, textcite: bool = False) -> str:
+    citations = []
+    for raw_key in keys_text.split(","):
+        key = latex_to_text(raw_key.strip())
+        entry = BIB_DATABASE.get(key)
+        if entry:
+            citations.append((format_author_list_for_citation(entry.raw_author), entry.year or "n.d."))
+        elif key:
+            citations.append((key, "n.d."))
+
+    if not citations:
+        return ""
+
+    if textcite and len(citations) == 1:
+        author, year = citations[0]
+        return f"{author} ({year})"
+
+    return "(" + "; ".join(f"{author}, {year}" for author, year in citations) + ")"
+
+
+def replace_citation_commands(text: str) -> str:
+    text = re.sub(r"\\textcite\{([^}]*)\}", lambda match: format_citation(match.group(1), textcite=True), text)
+    text = re.sub(r"\\parencite\{([^}]*)\}", lambda match: format_citation(match.group(1)), text)
+    text = re.sub(r"\\cite\{([^}]*)\}", lambda match: format_citation(match.group(1)), text)
+    return text
 
 
 def collect_caption_metadata(lines: list[str]) -> tuple[list[str], list[str]]:
@@ -288,6 +487,8 @@ def collect_outline_metadata(lines: list[str]) -> list[OutlineEntry]:
     outline: list[OutlineEntry] = []
     in_document = False
     in_titlepage = False
+    numbering_active = False
+    counters = HeadingCounters()
 
     for raw in lines:
         line = raw.strip()
@@ -310,15 +511,31 @@ def collect_outline_metadata(lines: list[str]) -> list[OutlineEntry]:
             continue
 
         for pattern, level in (
-            (r"\\section\*?\{(.+?)\}", 1),
-            (r"\\subsection\*?\{(.+?)\}", 2),
-            (r"\\subsubsection\*?\{(.+?)\}", 3),
+            (r"\\section(\*?)\{(.+?)\}", 1),
+            (r"\\subsection(\*?)\{(.+?)\}", 2),
+            (r"\\subsubsection(\*?)\{(.+?)\}", 3),
         ):
             match = re.match(pattern, line)
             if match:
-                title = clean_inline(match.group(1))
+                starred = bool(match.group(1))
+                title = clean_inline(match.group(2))
                 if title and title not in {"Table of Contents", "List of Figures", "List of Tables"}:
-                    outline.append(OutlineEntry(level=level, title=title))
+                    display_title = title
+                    if not starred:
+                        if level == 1:
+                            counters.section += 1
+                            counters.subsection = 0
+                            counters.subsubsection = 0
+                            numbering_active = True
+                            display_title = f"{counters.section} {title}"
+                        elif level == 2 and numbering_active:
+                            counters.subsection += 1
+                            counters.subsubsection = 0
+                            display_title = f"{counters.section}.{counters.subsection} {title}"
+                        elif level == 3 and numbering_active:
+                            counters.subsubsection += 1
+                            display_title = f"{counters.section}.{counters.subsection}.{counters.subsubsection} {title}"
+                    outline.append(OutlineEntry(level=level, title=display_title))
                 break
 
     return outline
@@ -347,6 +564,66 @@ def add_field(paragraph, instruction: str, placeholder: str):
     run._r.append(separate)
     run._r.append(text)
     run._r.append(end)
+
+
+def clear_paragraph(paragraph):
+    element = paragraph._element
+    for child in list(element):
+        element.remove(child)
+
+
+def set_section_page_numbering(section, start: int | None = None, fmt: str | None = None):
+    sect_pr = section._sectPr
+    pg_num_type = sect_pr.find(qn("w:pgNumType"))
+    if pg_num_type is None:
+        pg_num_type = OxmlElement("w:pgNumType")
+        sect_pr.append(pg_num_type)
+
+    start_attr = qn("w:start")
+    fmt_attr = qn("w:fmt")
+
+    if start is None:
+        pg_num_type.attrib.pop(start_attr, None)
+    else:
+        pg_num_type.set(start_attr, str(start))
+
+    if fmt is None:
+        pg_num_type.attrib.pop(fmt_attr, None)
+    else:
+        pg_num_type.set(fmt_attr, fmt)
+
+
+def add_page_number_footer(section, instruction: str = "PAGE", placeholder: str = "1"):
+    section.footer.is_linked_to_previous = False
+    footer = section.footer
+    paragraph = footer.paragraphs[0] if footer.paragraphs else footer.add_paragraph()
+    clear_paragraph(paragraph)
+    paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    add_field(paragraph, instruction, placeholder)
+
+
+def apply_page_numbering(document: Document):
+    sections = document.sections
+    if not sections:
+        return
+
+    title_section = sections[0]
+    title_section.footer.is_linked_to_previous = False
+    for paragraph in title_section.footer.paragraphs:
+        clear_paragraph(paragraph)
+
+    if len(sections) >= 2:
+        front_matter = sections[1]
+        set_section_page_numbering(front_matter, start=1, fmt="lowerRoman")
+        add_page_number_footer(front_matter, instruction=r"PAGE \* roman", placeholder="i")
+
+    if len(sections) >= 3:
+        body = sections[2]
+        set_section_page_numbering(body, start=1, fmt="decimal")
+        add_page_number_footer(body)
+
+    for section in sections[3:]:
+        add_page_number_footer(section)
 
 
 def add_front_matter(document: Document):
@@ -557,6 +834,9 @@ def build_docx(output_path: Path, google_docs_mode: bool = False):
     in_figure = False
     in_table = False
     in_tabular = False
+    body_section_started = False
+    heading_counters = HeadingCounters()
+    heading_numbering_active = False
     figure_buffer: FigureBuffer | None = None
     pending_paragraph_lines: list[str] = []
     table_buffer: TableBuffer | None = None
@@ -678,22 +958,47 @@ def build_docx(output_path: Path, google_docs_mode: bool = False):
             in_enumerate = bool(enumerate_stack)
             continue
 
-        section = re.match(r"\\section\*?\{(.+?)\}", line)
+        section = re.match(r"\\section(\*?)\{(.+?)\}", line)
         if section:
             pending_paragraph_lines = flush_pending_paragraph(document, pending_paragraph_lines)
-            document.add_heading(clean_inline(section.group(1)), level=1)
+            starred = bool(section.group(1))
+            title = clean_inline(section.group(2))
+            if title == "Introduction" and not body_section_started:
+                document.add_section(WD_SECTION_START.NEW_PAGE)
+                body_section_started = True
+            display_title = title
+            if not starred:
+                heading_counters.section += 1
+                heading_counters.subsection = 0
+                heading_counters.subsubsection = 0
+                heading_numbering_active = True
+                display_title = f"{heading_counters.section} {title}"
+            document.add_heading(display_title, level=1)
             continue
 
-        subsection = re.match(r"\\subsection\*?\{(.+?)\}", line)
+        subsection = re.match(r"\\subsection(\*?)\{(.+?)\}", line)
         if subsection:
             pending_paragraph_lines = flush_pending_paragraph(document, pending_paragraph_lines)
-            document.add_heading(clean_inline(subsection.group(1)), level=2)
+            starred = bool(subsection.group(1))
+            title = clean_inline(subsection.group(2))
+            display_title = title
+            if not starred and heading_numbering_active:
+                heading_counters.subsection += 1
+                heading_counters.subsubsection = 0
+                display_title = f"{heading_counters.section}.{heading_counters.subsection} {title}"
+            document.add_heading(display_title, level=2)
             continue
 
-        subsubsection = re.match(r"\\subsubsection\*?\{(.+?)\}", line)
+        subsubsection = re.match(r"\\subsubsection(\*?)\{(.+?)\}", line)
         if subsubsection:
             pending_paragraph_lines = flush_pending_paragraph(document, pending_paragraph_lines)
-            document.add_heading(clean_inline(subsubsection.group(1)), level=3)
+            starred = bool(subsubsection.group(1))
+            title = clean_inline(subsubsection.group(2))
+            display_title = title
+            if not starred and heading_numbering_active:
+                heading_counters.subsubsection += 1
+                display_title = f"{heading_counters.section}.{heading_counters.subsection}.{heading_counters.subsubsection} {title}"
+            document.add_heading(display_title, level=3)
             continue
 
         if r"\tableofcontents" in line:
@@ -738,10 +1043,7 @@ def build_docx(output_path: Path, google_docs_mode: bool = False):
                 if in_enumerate:
                     if enumerate_stack:
                         enumerate_stack[-1] += 1
-                    if google_docs_mode:
-                        add_static_numbered_item(document, len(enumerate_stack), enumerate_stack[-1], item_text)
-                    else:
-                        document.add_paragraph(item_text, style="List Number")
+                    add_static_numbered_item(document, len(enumerate_stack), enumerate_stack[-1], item_text)
                 else:
                     document.add_paragraph(item_text, style="List Bullet")
             continue
@@ -756,6 +1058,8 @@ def build_docx(output_path: Path, google_docs_mode: bool = False):
         pending_paragraph_lines.append(cleaned)
 
     flush_pending_paragraph(document, pending_paragraph_lines)
+    if not google_docs_mode:
+        apply_page_numbering(document)
     document.save(str(output_path))
 
 

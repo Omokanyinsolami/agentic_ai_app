@@ -1,5 +1,6 @@
 import pytest
 from langchain_core.messages import HumanMessage
+from datetime import date, timedelta
 
 from langgraph_agent import (
     AgentState,
@@ -10,6 +11,7 @@ from langgraph_agent import (
     _parse_kv_payload,
     _split_positionals_and_options,
     _validate_deadline,
+    format_reminder_timing,
     get_db_settings,
     route,
     send_email_notification,
@@ -75,6 +77,18 @@ def test_validate_deadline_empty_allowed():
     value, err = _validate_deadline("")
     assert value is None
     assert err is None
+
+
+def test_format_reminder_timing_marks_overdue_tasks():
+    today = date(2026, 4, 7)
+    assert format_reminder_timing(today - timedelta(days=2), today=today) == "🚨 Overdue by 2 day(s)"
+
+
+def test_format_reminder_timing_marks_due_soon_tasks():
+    today = date(2026, 4, 7)
+    assert format_reminder_timing(today, today=today) == "⏳ Due today"
+    assert format_reminder_timing(today + timedelta(days=1), today=today) == "📅 Due in 1 day"
+    assert format_reminder_timing(today + timedelta(days=4), today=today) == "📅 Due in 4 days"
 
 
 def test_route_natural_language_add_task_goes_agentic_chat():

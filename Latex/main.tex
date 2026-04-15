@@ -100,7 +100,7 @@
 
 
 \section*{Abstract}
-This dissertation presents the design, implementation, and evaluation of an agentic AI learner-support prototype that combines a React Progressive Web App frontend, a Flask API backend, PostgreSQL persistence, and a LangGraph orchestration core. The prototype was developed to address a practical learner problem: passive digital tools often store tasks but do not actively help users organise workload, generate schedules, respond to change, or interpret deadline pressure. The implemented system therefore supports account creation and login with expiring bearer-token sessions, structured and natural-language task creation, filterable/sortable task listing, inline editing, soft deletion with recovery, conflict detection, availability management, schedule generation, automatic schedule adaptation triggers, and reminder delivery. To assess reliability, an implementation audit was run across backend routing and API behaviour, frontend validation logic, setup and configuration pathways, and scenario-based scheduling outcomes. This produced a full automated-test pass set across backend and frontend checks, repeated scenario runs across five workload families (A-E), and non-functional benchmarking for latency, uplift, and scale signals. Results indicate that the prototype fulfils the defined learner-support use cases, offers stronger active support than passive planning tools, and provides context-dependent advantages over a non-agentic scheduling baseline, especially when task conditions change.
+This dissertation presents the design, implementation, and evaluation of an agentic AI learner-support prototype that combines a React Progressive Web App frontend, a Flask API backend, PostgreSQL persistence, and a LangGraph orchestration core. The prototype was developed to address a practical learner problem: passive digital tools often store tasks but do not actively help users organise workload, generate schedules, respond to change, or interpret deadline pressure. The implemented system therefore supports account creation and login with expiring bearer-token sessions, structured and natural-language task creation, filterable/sortable task listing, inline editing, soft deletion with recovery, conflict detection, availability management, schedule generation, automatic schedule adaptation triggers, and reminder generation with configurable delivery pathways. To assess reliability, an implementation audit was run across backend routing and API behaviour, frontend validation logic, setup and configuration pathways, and scenario-based scheduling outcomes. This produced a full automated-test pass set across backend and frontend checks, repeated scenario runs across five workload families (A-E), and non-functional benchmarking for latency, uplift, and scale signals. Results indicate that the prototype fulfils the defined learner-support use cases, offers stronger active support than passive planning tools, and provides context-dependent advantages over a non-agentic scheduling baseline, especially when task conditions change.
 \newline
 \textbf{Keywords:} 
 Agentic AI, learner support, academic task management, task scheduling, LangGraph, software prototype, adaptive planning, constraint-based scheduling
@@ -143,13 +143,13 @@ TOC & Table of Contents \\
 \subsection{Project Background}
 Learners increasingly manage academic work across fragmented digital environments that combine learning management systems, calendar tools, reminder apps, messaging platforms, and personal notes. While these tools store information, they often do not actively help users interpret workload, prioritise competing tasks, reorganise plans after change, or maintain a coherent overview of study commitments. As a result, learners may still experience deadline clustering, missed work, and avoidable overload even when they are already using digital tools.
 
-Agentic AI is relevant to this problem because it refers to systems that can pursue goals with bounded autonomy, use tools, reason about changing context, and adapt behaviour based on feedback \parencite{10849561,hughes2025ai}. In the context of academic task management, this means an AI system can move beyond passive storage and act as a purposeful support layer: it can help interpret task data, suggest priorities, generate schedules, explain recommendations, and adapt plans when the learner's situation changes.
+Agentic AI is relevant to this problem because it refers to systems that can pursue goals with bounded autonomy, use tools, reason about changing context, and adapt behaviour based on feedback \parencite{10849561}. In the context of academic task management, this means an AI system can move beyond passive storage and provide active support: it can help interpret task data, suggest priorities, generate schedules, explain recommendations, and adapt plans when the learner's situation changes.
 
-This dissertation therefore frames the project as the design and evaluation of a learner-support prototype rather than a narrow single-cohort planning tool. Although the original implementation context emerged from postgraduate study management, the target problem is broader: enabling learners in higher education and similar structured learning environments to manage tasks, deadlines, study time, and change more effectively.
+This dissertation therefore frames the project as the design and evaluation of a learner-support prototype rather than a single-cohort planning tool. The target problem is broader: enabling learners in higher education and similar structured learning environments to manage tasks, deadlines, study time, and change more effectively.
 \subsection{Project Motivation}
 The project is motivated by a practical support problem and a technical design problem. The practical problem is that many existing educational support tools are passive: they record deadlines or display events but expect learners to do most of the prioritisation and replanning work themselves. The technical problem is how to design an AI system that supports users actively without becoming opaque, unreliable, or difficult to test.
 
-Three specific motivations follow from this. First, there is a need for a supportive environment in which learners can capture academic tasks, understand what matters next, and reorganise plans when constraints change. Second, there is a need to compare agentic support with existing passive or non-agentic solutions, because a system should justify why purposeful AI assistance is useful rather than simply novel. Third, there is a need for an implementation that remains operational and defensible: setup, configuration, testing, and evaluation must show that the system works as a software prototype and not merely as a conceptual design.
+Three specific motivations follow from this. First, there is a need for a supportive environment in which learners can capture academic tasks, understand what matters next, and reorganise plans when constraints change. Second, there is a need to compare agentic support with existing passive or non-agentic solutions, because a system should justify why active AI assistance is useful rather than simply novel. Third, there is a need for an implementation that remains operational and defensible: setup, configuration, testing, and evaluation must show that the system works as a software prototype and not merely as a conceptual design.
 
 \subsection{Research Questions and Hypothesis}
 The project addresses the following research questions:
@@ -171,31 +171,23 @@ The following hypotheses are proposed:
     \item A hybrid architecture with deterministic operational boundaries and selective AI reasoning will provide a better balance of support, explainability, and testability than AI-first orchestration alone.
 \end{enumerate}
 
-\subsection{Dissertation Outline Mapping to the Handbook}
-To ensure compliance with the MSc handbook structure, this dissertation is intentionally organised using a one-to-one mapping between handbook expectations and implemented sections of this report. The front matter contains the required title page and declaration statements, abstract, acknowledgements, table of contents, list of figures, list of tables, and list of acronyms. The main body then follows a technical narrative from problem framing to evidence-backed conclusions.
+\subsection{Report Structure}
+The report begins by defining the problem, motivation, research questions, hypotheses, scope boundaries, and objectives. It then reviews prior work in digital learner-support systems, AI systems, and relevant software frameworks.
 
-The first part of the body (Introduction and project description) defines the domain, motivation, research questions, hypotheses, scope boundaries, and success criteria. This aligns with the handbook expectation that the early chapter should function as a clear roadmap for the examiner, explaining both why the work matters and how the subsequent sections contribute to answering the project objectives.
+The next part presents the system design and methods, including requirements, use cases, architecture, setup/configuration strategy, and evaluation method. This is followed by development, debugging, and testing evidence across backend, frontend, scheduling, and reminder workflows.
 
-The second part is a combined literature review and technical review. In line with supervisor feedback, the literature chapter is divided into digital and online educational support systems, AI systems (including agentic and non-agentic approaches), and a relevant software/framework overview. This dual role is deliberate because the project is both research-led and implementation-heavy. A purely conceptual review would be insufficient for a software artefact dissertation where architecture and tool-chain decisions materially affect validity, reproducibility, and measured outcomes.
-
-The third part presents software and system design methods, including requirements elicitation, use cases, architecture decomposition, setup/configuration strategy, and evaluation methodology. This directly addresses the handbook requirement for methods and design alternatives. Throughout this part, decisions are justified in terms of technical feasibility, evidence quality, and trade-offs between deterministic behaviour and adaptive intelligence.
-
-The fourth part documents development, setup/configuration, debugging, and testing evidence. Because this project contains backend APIs, frontend workflows, orchestration logic, and evaluation harnesses, testing is reported at multiple levels: unit validation, API contracts, integration behaviour, scenario-level simulation, and non-functional benchmarking. This corresponds to the handbook expectation that implementation claims must be supported by verifiable results rather than descriptive assertions.
-
-The fifth part presents outcomes, results, and analysis. Quantitative results are combined with qualitative interpretation to show what improved, what remained constrained, and why. This is followed by a dedicated discussion and evaluation section that situates results in the wider literature, identifies limitations, and clarifies what can and cannot be inferred from the current prototype.
-
-Finally, the report concludes with a focused final conclusions chapter and a separate future work chapter to conform to the handbook sequence. References and appendices close the document. This structure was selected so an examiner can evaluate the project linearly: motivation, prior work, method, build, evidence, interpretation, conclusions, and extensions.
+The final chapters present outcomes, analysis, discussion, conclusions, and future work. References and appendices are provided at the end of the report.
 
 
 
 \subsection{Project Scope and Objectives}
-\noindent The project scope is a functional software prototype that actively supports learners in managing academic work. The prototype is designed for structured learning environments where users must handle deadlines, tasks, study availability, and changing priorities. It is not restricted to a single cohort; rather, postgraduate learners, undergraduate learners, and similar independent learners represent the intended support context.
+\noindent The project scope is a functional software prototype that actively supports learners in managing academic work. The prototype is designed for structured learning environments where users must handle deadlines, tasks, study availability, and changing priorities. It is intended for learners in higher education and similar independent study contexts rather than a single programme or cohort.
 
 The scope includes task capture, prioritisation, scheduling, conflict detection, schedule adaptation, proactive reminder support including email reminders where configured, and explanatory interaction. The scope does not include full institutional LMS integration, advanced collaborative planning, or long-term adaptive personalisation through user modelling. These boundaries keep the project aligned with dissertation-scale prototype development while still addressing a meaningful learner-support problem.
 \subsection{Problem Statement}
 The core problem addressed in this dissertation is that learners often rely on passive digital tools that record tasks but do not actively support the ongoing work of academic planning. Learners must still decide what to do next, how to allocate time, how to react when deadlines shift, and how to recover from overload or interruptions. This creates a gap between information storage and genuine learner support.
 
-The project addresses this problem by designing and evaluating an operational agentic AI prototype that provides purposeful assistance. The system is intended to act as a supportive environment for learners by capturing tasks, structuring workload information, generating schedules, detecting conflicts, issuing timely reminder prompts, explaining recommendations, and adapting plans when circumstances change. The research challenge is therefore not only whether agentic AI can plan, but whether it can do so in a way that is reliable, useful, explainable, and operationally testable.
+The project addresses this problem by designing and evaluating an operational agentic AI prototype that provides active support. The system is intended to act as a supportive environment for learners by capturing tasks, structuring workload information, generating schedules, detecting conflicts, issuing timely reminder prompts, explaining recommendations, and adapting plans when circumstances change. The research challenge is therefore not only whether agentic AI can plan, but whether it can do so in a way that is reliable, useful, explainable, and testable.
 \subsection{Project Goal and Objectives}
 \begin{enumerate}
     \item \textbf{Project Goal}: Design, implement, and evaluate a functional agentic AI learner-support prototype that helps learners manage academic tasks, schedules, deadlines, and reminder-driven follow-through more effectively.
@@ -203,7 +195,7 @@ The project addresses this problem by designing and evaluating an operational ag
     \begin{enumerate}
         \item conduct a literature review covering (a) digital and online educational support systems and (b) AI systems, including both non-agentic and agentic approaches, plus a relevant software overview.
         \item derive clear requirements and operational use cases that define what the agentic learner-support system is intended to do.
-        \item specify a structured system design for the software prototype, including architecture, data model, workflow logic, and purposeful agent behaviour.
+        \item specify a structured system design for the software prototype, including architecture, data model, workflow logic, and clear system behaviour.
         \item implement, configure, and debug a fully operational prototype that integrates frontend, backend, persistence, and agent orchestration components.
         \item execute comprehensive testing with clearly defined test cases that demonstrate whether the prototype fulfils the intended use cases.
         \item evaluate the prototype against its use cases, compare it with existing solutions and a non-agentic baseline, and document strengths, limitations, and future improvements.
@@ -221,8 +213,6 @@ The project addresses this problem by designing and evaluating an operational ag
         \end{enumerate}
     \end{enumerate}
 
-\subsection{Project Roadmap}
-The project follows the six-part work plan emphasised in supervisor feedback: (1) literature review, (2) requirements analysis and use cases, (3) system design, (4) setup/configuration and implementation, (5) testing, and (6) project evaluation. This sequencing is intentional because the running prototype now provides an implementation foundation, while the dissertation must demonstrate how that implementation solves a clearly defined learner-support problem and how its operational value is evidenced. A detailed project schedule with weekly breakdown is provided in Section~\ref{proj_sched_risk_mgt}.
 \section{Literature Review and Technical Review}
 \subsection{Part I: Digital and Online Educational Support Systems}
 Digital and online educational support systems already provide important infrastructure for learners, but they usually support organisation indirectly rather than actively. Learning management systems, educational dashboards, and intelligent tutoring environments centralise course material, assessment information, and interaction history, improving visibility of learning activity \parencite{koedinger2010data}. However, these systems generally stop short of continuously helping the learner decide what to do next, how to allocate time, or how to recover from disrupted plans.
@@ -238,7 +228,7 @@ Across these digital systems, four recurring support functions can be identified
     \item limited progress monitoring.
 \end{enumerate}
 
-What is often missing is a coherent supportive environment that actively combines these functions. Existing systems rarely integrate task capture, prioritisation, scheduling, conflict detection, explanation, and adaptation into one purposeful workflow. This creates a gap between digital access to academic information and genuine support for academic self-management.
+What is often missing is a coherent supportive environment that actively combines these functions. Existing systems rarely integrate task capture, prioritisation, scheduling, conflict detection, explanation, and adaptation into one connected workflow. This creates a gap between digital access to academic information and genuine support for academic self-management.
 
 \subsubsection{Implications for This Prototype}
 This project responds to that gap by treating learner support as an operational design objective. The prototype is therefore intended to help learners manage academic tasks more effectively, not merely provide another storage interface. To justify an agentic approach, the system must do more than record tasks: it must actively prioritise, schedule, explain, detect problems, and adapt when circumstances change.
@@ -247,17 +237,17 @@ This project responds to that gap by treating learner support as an operational 
 \subsubsection{Non-Agentic AI in Education}
 Non-agentic AI systems in education usually provide bounded assistance such as recommendation, classification, prediction, or content generation. Examples include automated feedback systems, predictive warning tools, recommendation engines, and conventional machine-learning schedulers. These systems can improve efficiency, but they are often narrow in scope and reactive in behaviour. They assist with one function rather than managing an evolving learner context across multiple connected actions.
 
-Classical planning and optimisation methods remain highly relevant in this space. Constraint-based and heuristic planning approaches can generate feasible schedules under explicit rules and are well suited to deterministic benchmarking \parencite{geffner2013concise,ghallab2016automated}. Their main limitation in learner-support settings is not correctness but flexibility: they do not naturally provide conversational interaction, contextual explanation, or adaptive support grounded in changing learner circumstances.
+Classical planning and optimisation methods remain highly relevant in this space. Constraint-based and heuristic planning approaches can generate feasible schedules under explicit rules and are well suited to deterministic benchmarking \parencite{ghallab2016automated}. Their main limitation in learner-support settings is not correctness but flexibility: they do not naturally provide conversational interaction, contextual explanation, or adaptive support grounded in changing learner circumstances.
 
 \subsubsection{Agentic AI and Autonomous Support}
-Agentic AI extends beyond bounded recommendation by introducing goal-directed autonomy, tool use, and feedback-based adaptation \parencite{sapkota2025ai,bandi2025rise,pati2025agentic}. In a learner-support setting, this means the system can take a clear purpose such as helping the learner manage academic work effectively and then perform multiple connected actions: interpret requests, inspect task state, generate a schedule, explain the outcome, and revise the plan after change.
+Agentic AI extends beyond bounded recommendation by introducing goal-directed autonomy, tool use, and feedback-based adaptation \parencite{bandi2025rise}. In a learner-support setting, this means the system can take a clear purpose such as helping the learner manage academic work effectively and then perform multiple connected actions: interpret requests, inspect task state, generate a schedule, explain the outcome, and revise the plan after change.
 
-This capability is especially relevant where academic work is dynamic. New tasks appear, deadlines shift, availability changes, and learners need help recovering from overload. Research on autonomous agents and LLM-based planning highlights both the promise and the risk of such systems: they can provide flexible reasoning and explanation, but they may also become non-deterministic, expensive, or difficult to verify \parencite{wang2024survey,murugesan2025rise,aghzal2025survey,yao2022react}.
+This capability is especially relevant where academic work is dynamic. New tasks appear, deadlines shift, availability changes, and learners need help recovering from overload. Research on autonomous agents and LLM-based planning highlights both the promise and the risk of such systems: they can provide flexible reasoning and explanation, but they may also become non-deterministic, expensive, or difficult to verify \parencite{wang2024survey}.
 
 \subsubsection{Relevant Software and Framework Overview}
-The software overview for this project focuses on frameworks that could support purposeful learner assistance in an operational prototype. LangChain-style ecosystems provide composable LLM application building blocks \parencite{chase2022langchain}. AutoGen and CrewAI support role-based or multi-agent interactions \parencite{autogen2023,crewai2024}. LangGraph provides graph-based orchestration for stateful, multi-step workflows \parencite{langgraph2024}.
+The software overview for this project focuses on frameworks that could support practical learner assistance in an operational prototype. LangChain-style ecosystems provide composable LLM application building blocks \parencite{chase2022langchain}. AutoGen supports conversational multi-agent interaction patterns \parencite{autogen2023}. CrewAI supports role-based agent collaboration \parencite{crewai2024}. LangGraph provides graph-based orchestration for stateful, multi-step workflows \parencite{langgraph2024}.
 
-From a learner-support perspective, the decisive issue is not simply whether a framework can call an LLM. The more important question is whether it can support purposeful, inspectable, and testable workflows. A system intended to help learners manage real academic tasks must remain stable for CRUD operations, session security, and recovery flows while still enabling adaptive reasoning where appropriate. This requirement strongly favours a hybrid architecture in which deterministic operations are protected and AI reasoning is invoked selectively.
+From a learner-support perspective, the decisive issue is not simply whether a framework can call an LLM. The more important question is whether it can support inspectable and testable workflows. A system intended to help learners manage real academic tasks must remain stable for CRUD operations, session security, and recovery flows while still enabling adaptive reasoning where appropriate. This requirement strongly favours a hybrid architecture in which deterministic operations are protected and AI reasoning is invoked selectively.
 
 \subsection{Comparison with Existing Solutions}
 Table~\ref{tab:existing_solution_comparison} compares representative categories of existing solutions with the proposed prototype. The purpose of this comparison is to show why an agentic learner-support system is justified and how it differs from passive or narrowly scoped alternatives.
@@ -292,7 +282,7 @@ The comparison highlights the central design rationale of this dissertation. Exi
 \begin{enumerate}
     \item Existing digital educational support systems are often passive and do not provide integrated workload interpretation or replanning support.
     \item Non-agentic AI systems can optimise or recommend, but they often do not manage an evolving learner context across multiple connected actions.
-    \item Agentic AI research has not yet provided enough operational evidence showing how purposeful learner-support behaviour can be implemented, tested, and evaluated in a reliable software prototype.
+    \item Agentic AI research has not yet provided enough operational evidence showing how active learner-support behaviour can be implemented, tested, and evaluated in a reliable software prototype.
     \item Comparisons between passive tools, non-agentic baselines, and hybrid agentic systems remain limited, especially in academic task-management scenarios.
 \end{enumerate}
 This dissertation addresses these gaps by implementing an operational learner-support prototype and evaluating it against defined use cases, a non-agentic baseline, and representative categories of existing solutions.
@@ -304,7 +294,7 @@ Three architecture patterns were examined at a technical level. The first patter
 
 The second pattern is a purely deterministic service architecture with no AI orchestration. This model is strong for correctness and auditability but weak for adaptive behaviour and natural-language interaction. It also requires users to learn rigid command structures and therefore has lower accessibility for non-technical end users. In research terms, this pattern can provide a useful baseline, but it does not satisfy the objective of evaluating agentic adaptation.
 
-The third pattern, adopted in this dissertation, is a hybrid architecture that isolates deterministic operations from adaptive orchestration. In this pattern, core CRUD and security-sensitive flows remain explicit and testable through typed APIs, while AI components are invoked for planning, explanation, and adaptation where uncertainty can be tolerated and managed. This pattern reflects the broader recommendation in current agentic AI research: use strict control boundaries for high-consequence operations and flexible reasoning for optimisation and interpretation tasks \parencite{bandi2025rise,shavit2023practices}.
+The third pattern, adopted in this dissertation, is a hybrid architecture that isolates deterministic operations from adaptive orchestration. In this pattern, core CRUD and security-sensitive flows remain explicit and testable through typed APIs, while AI components are invoked for planning, explanation, and adaptation where uncertainty can be tolerated and managed. This pattern reflects the broader recommendation in current agentic AI research: use strict control boundaries for high-consequence operations and flexible reasoning for optimisation and interpretation tasks \parencite{shavit2023practices}.
 
 From a software quality perspective, the hybrid pattern contributes to stronger testability. Deterministic routes can be covered by stable unit and integration tests, while AI-assisted behaviour can be assessed through scenario evaluation and comparative metrics. The architecture therefore supports two evidence channels simultaneously: software correctness evidence and adaptive-performance evidence. This dual evidence model is particularly important for dissertations that claim both engineering validity and AI-driven adaptability.
 
@@ -313,7 +303,7 @@ The technical review also considered orchestration granularity. Fine-grained orc
 Another architecture-level finding concerns dependency management. Systems with strict reliance on external model providers can suffer availability and reproducibility issues during testing, evaluation, or deployment. For this reason, the project design retained deterministic fallback behaviours (for example EDF-style scheduling fallback) so that core workflows remain operational even when AI services are unavailable. This design improves resilience and allows benchmarking of ``agentic uplift'' relative to a known baseline.
 
 \subsection{Technical Review of Data Integrity and Session Security}
-The handbook emphasises professional and legal quality, which in software projects requires explicit treatment of data integrity and access control. Therefore, a dedicated technical review was performed for persistence, transaction boundaries, and session security design.
+Because this project handles account data, task records, and authenticated access, a dedicated technical review was performed for persistence, transaction boundaries, and session security design.
 
 At the data layer, PostgreSQL was selected to provide transactional guarantees, robust indexing, and referential integrity. While lighter embedded stores can reduce setup complexity, they may not support realistic concurrency and constraint enforcement at the same quality level for this project's scope. The schema design was reviewed for minimum viable normalisation, consistent key usage, and predictable query paths under filtering and sorting operations.
 
@@ -350,7 +340,7 @@ These principles directly informed the method and implementation chapters. They 
 
 \section{Software/System Design and Methods}
 \subsection{Project Type}
-This project is framed as a design-and-implementation study of a functional learner-support prototype that uses agentic AI techniques to assist with academic task management. It is therefore both a software prototype project and an evaluative AI systems project. The design focus is on building a purposeful support environment for learners, while the research focus is on understanding whether agentic orchestration improves usefulness, adaptability, and operational behaviour compared with passive or non-agentic alternatives.
+This project is framed as a design-and-implementation study of a functional learner-support prototype that uses agentic AI techniques to assist with academic task management. It is therefore both a software prototype project and an evaluative AI systems project. The design focus is on building a usable support environment for learners, while the research focus is on understanding whether agentic orchestration improves usefulness, adaptability, and operational behaviour compared with passive or non-agentic alternatives.
 
 The project involves system design, software implementation, setup/configuration work, debugging, testing, and comparative evaluation. This combination is important because the dissertation must show not only that the prototype idea is theoretically justified, but also that it can be configured, executed, tested, and evaluated as a working operational artefact.
 
@@ -358,7 +348,7 @@ The project involves system design, software implementation, setup/configuration
 
 Requirements were defined through use-case-driven analysis of learner-support needs. The method started from the problem of helping learners manage tasks, deadlines, and study constraints more effectively, then translated that problem into operational use cases, functional requirements, non-functional constraints, and verifiable implementation evidence.
 
-This use-case-driven method was important for supervisor-aligned scope control. It ensured that the prototype was not described in abstract AI terms only, but in terms of what the system is actually expected to do for users. Each requirement therefore supports at least one concrete learner interaction that can later be tested and evaluated.
+This use-case-driven method kept the prototype grounded in concrete user tasks rather than abstract AI claims. Each requirement therefore supports at least one concrete learner interaction that can later be tested and evaluated.
 
 \subsubsection{Scenario Definitions:}
 \begin{enumerate}
@@ -598,7 +588,7 @@ By mapping ethics to system behaviour rather than abstract principles, the proje
 \subsubsection{Legal/Professional Method Integration}
 Professional compliance was addressed through secure credential handling, expiring sessions, and explicit route protection. Legal alignment was approached using privacy-by-design heuristics: minimum necessary data capture, controlled external integrations, and clear separation between internal processing and optional third-party services (for example external LLM or SMTP providers where configured).
 
-The governance method also informed documentation strategy: unresolved non-functional benchmarks are explicitly reported as pending rather than silently omitted. This conservative reporting reflects professional integrity expectations in postgraduate research work.
+The governance method also informed documentation strategy: unresolved non-functional benchmarks are explicitly reported as pending rather than silently omitted. This conservative reporting reflects good professional practice in research reporting.
 
 \subsection{Evaluation Analysis Plan and Validity Strategy}
 The analysis plan combined deterministic correctness evidence with scenario-level performance comparison. This mixed-method strategy was selected because agentic systems cannot be adequately evaluated by unit tests alone.
@@ -761,7 +751,7 @@ The implemented prototype successfully demonstrates:
     \item \textbf{Natural Language Interface:} Conversational AI chat with intelligent intent detection, bulk operations (e.g., ``mark all tasks as completed''), and contextual advice for task management queries
     \item \textbf{Constraint Awareness:} Conflict detection identifying deadline congestion, workload overload, priority conflicts, and urgent tasks due within 24 hours
     \item \textbf{Adaptive Scheduling:} Schedule adaptation automatically triggered from task and availability edits, with explicit manual trigger fallback
-    \item \textbf{Reminder System:} SMTP-based email notifications for upcoming deadlines with friendly formatting
+    \item \textbf{Reminder System:} reminder generation for upcoming deadlines, with both direct app-triggered execution and a hosted automation pathway using Supabase Edge Functions and scheduled cron invocation when provider credentials are configured
     \item \textbf{Data Portability:} CSV export/import functionality for backup and migration
     \item \textbf{Deployability:} Configuration for both local development and cloud deployment targets, plus benchmark scripts for reproducible NFR checks
 \end{enumerate}
@@ -769,7 +759,7 @@ The implemented prototype successfully demonstrates:
 The LangGraph-based architecture proved effective for this use case, providing deterministic routing, efficient state management, and straightforward database integration without the overhead of LLM API calls for routine operations.
 
 \subsection{Setup, Configuration, and Debugging to Operational State}
-Supervisor feedback placed particular emphasis on setup/configuration because a prototype should be demonstrably operational rather than conceptually described. For that reason, implementation work in this project included not only feature coding but also configuration discipline, environment management, debugging, and reproducible execution pathways.
+Implementation work in this project included not only feature coding but also configuration discipline, environment management, debugging, and reproducible execution pathways. This was necessary because the dissertation evaluates a working prototype rather than a conceptual design.
 
 \subsubsection{Environment Setup}
 The operational prototype was structured around a React frontend, Flask backend, PostgreSQL database, and LangGraph agent layer. Environment setup therefore required:
@@ -777,7 +767,7 @@ The operational prototype was structured around a React frontend, Flask backend,
     \item creation of a Python environment for backend dependencies;
     \item installation of frontend dependencies through Node.js tooling;
     \item PostgreSQL database creation and schema initialisation;
-    \item environment-variable configuration for database access, API origins, session expiry, and optional external services.
+    \item environment-variable configuration for database access, API origins, session expiry, and optional external services such as Groq, Brevo, and hosted reminder automation.
 \end{enumerate}
 
 This setup model was chosen because it mirrors realistic deployment structure while remaining reproducible for local testing and demonstration. Configuration files and template environment variables were used to reduce hard-coded deployment assumptions.
@@ -785,7 +775,7 @@ This setup model was chosen because it mirrors realistic deployment structure wh
 \subsubsection{Configuration Strategy}
 Configuration management used environment-based separation for secrets and deployment variables. This included API origin controls, session TTL, optional external service credentials, and runtime mode toggles. Environment-driven configuration supports reproducibility across local development, test execution, and cloud deployment without code edits between environments.
 
-The frontend was configured to consume a deployment-variable API base URL, while the backend was configured for database connectivity, CORS, session control, and optional third-party integrations. This separation improved maintainability and reduced the risk of environment-specific defects entering source control.
+The frontend was configured to consume a deployment-variable API base URL, while the backend was configured for database connectivity, CORS, session control, and optional third-party integrations. In the final reminder pathway, hosted PostgreSQL on Supabase was paired with a Supabase Edge Function and cron schedule so that reminder automation could continue independently of the developer machine. Brevo was used as the transactional email provider for the hosted path, but live delivery remains dependent on valid provider credentials and verified sender settings. This separation improved maintainability and reduced the risk of environment-specific defects entering source control.
 
 \subsubsection{Debugging and Stabilisation Activities}
 Operational debugging focused on issues that directly affect prototype reliability and use-case fulfilment. Key stabilisation activities included:
@@ -794,11 +784,14 @@ Operational debugging focused on issues that directly affect prototype reliabili
     \item exposing UI-level filtering, sorting, and restore workflows that previously existed more strongly at backend level than interface level;
     \item extending adaptation triggers across task and availability changes so schedule updates occur after meaningful edits;
     \item implementing token-based session expiry and logout revocation to close session-management gaps;
-    \item hardening configuration and dependency management to support reproducible setup on other machines.
+    \item hardening configuration and dependency management to support reproducible setup on other machines;
+    \item debugging the reminder automation path by aligning Supabase RPC parameter names, correcting reminder-query logic, isolating duplicate-suppression behaviour, and switching from SMTP-only assumptions to a provider-backed Brevo API path suitable for hosted execution.
 \end{enumerate}
 
 \subsubsection{Operational Readiness Checks}
-The final configuration stage included explicit operational checks rather than assuming readiness from successful coding alone. These checks included backend route health, authentication flow, database connectivity, frontend production build success, automated test execution, and packaging of setup guidance for third-party reproduction. This emphasis on operational verification is important because the dissertation claims a functional prototype, not only a partial implementation.
+The final configuration stage included explicit operational checks rather than assuming readiness from successful coding alone. These checks included backend route health, authentication flow, database connectivity, frontend production build success, automated test execution, reminder dry-run generation, Supabase function invocation, cron registration, and packaging of setup guidance for third-party reproduction. These checks matter because the dissertation claims a functional prototype, not only a partial implementation.
+
+An additional setup outcome was the preparation of an always-on reminder route. Instead of relying only on manual invocation from the app or a developer laptop scheduler, the prototype now includes a Supabase-based automation path in which a hosted Edge Function queries due tasks and a scheduled cron trigger invokes that function daily. This path was configured and validated through function testing, dry-run reminder generation, and cron-job registration. Brevo was selected as the transactional email provider because HTTP-based provider APIs are easier to integrate with free-tier hosting than direct SMTP from restricted environments. End-to-end external email delivery, however, remains dependent on valid provider credentials and sender verification.
 
 \subsection{Detailed Development Workflow and Engineering Decisions}
 Development followed an incremental vertical-slice workflow rather than building isolated layers in sequence. Each slice implemented a complete user-visible capability across frontend, backend, persistence, and test coverage. This workflow reduced integration surprises and exposed design weaknesses early.
@@ -869,7 +862,7 @@ Deployability decisions include environment-based base URL configuration on the 
 
 Maintainability was addressed through modular endpoint organisation, validation helper functions, and clear route-level responsibility boundaries. The architecture is not yet fully modularised into blueprint-level packages, but major concern areas (auth, tasks, scheduling, chat, reminders) are sufficiently separated to support targeted refactoring in future iterations.
 
-An important maintainability outcome is the preservation of predictable extension points. New scheduling strategies can be introduced without rewriting task/session contracts; additional benchmark routines can be added without destabilising primary endpoints; and UI enhancements can build on stable data contracts. This reduces technical debt accumulation and makes the prototype a viable platform for continued postgraduate-level experimentation.
+An important maintainability outcome is the preservation of predictable extension points. New scheduling strategies can be introduced without rewriting task/session contracts; additional benchmark routines can be added without destabilising primary endpoints; and UI enhancements can build on stable data contracts. This reduces technical debt accumulation and makes the prototype easier to extend in future work.
 
 \subsection{Development Challenges and How They Were Addressed}
 Several implementation challenges emerged and were resolved with targeted engineering actions:
@@ -881,7 +874,7 @@ Several implementation challenges emerged and were resolved with targeted engine
     \item \textbf{Offline practicality}: solved by shell/read caching and queued write synchronisation instead of unrealistic full offline parity.
 \end{enumerate}
 
-These solutions reinforce the dissertation's central claim: practical agentic systems benefit from disciplined software engineering boundaries. The final implementation therefore reflects not just feature completion, but an evidence-oriented development process that aligns with the handbook emphasis on design rationale, implementation quality, and evaluable outcomes.
+These solutions show that practical agentic systems benefit from disciplined software engineering boundaries. The final implementation reflects not just feature completion, but a development process built around design rationale, implementation quality, and evaluation evidence.
 
 \subsection{Requirements Traceability Audit}
 \label{sec:req_traceability}
@@ -923,7 +916,7 @@ FR13 & Implemented & Conversational chat tab and backend \texttt{/api/chat}. \\
 \hline
 FR14 & Implemented & Prioritisation explanations via LLM advice and schedule reasoning text. \\
 \hline
-FR15 & Implemented & Reminder generation and optional SMTP email sending. \\
+FR15 & Implemented at prototype scope & Reminder generation works, and a hosted Supabase automation path was configured and dry-run validated for scheduled execution. External email delivery depends on valid provider credentials and sender verification. \\
 \hline
 FR16 & Implemented & Schedule visualisation in grouped day/time cards on frontend. \\
 \hline
@@ -1174,7 +1167,7 @@ UC4 & Modify task/availability after schedule creation & Adaptation triggers and
 \hline
 UC5 & Request conflict checks and explanation through UI/chat & Conflict warnings and prioritisation rationale returned clearly & Passed \\
 \hline
-UC6 & Request reminders or approaching-deadline support & Reminder content generated and optional email path remains available & Passed at prototype scope \\
+UC6 & Request reminders or approaching-deadline support & Reminder content generated; hosted scheduler path configured and validated in dry-run mode; external delivery available where valid provider credentials are supplied & Passed at prototype scope \\
 \hline
 \end{tabular}
 \caption{Use-case-oriented test matrix for the learner-support prototype}
@@ -1299,6 +1292,7 @@ Despite broad coverage, testing evidence has known boundaries that are important
     \item \textbf{Network realism}: offline replay tests are practical but do not simulate all multi-device conflict patterns.
     \item \textbf{Accessibility depth}: keyboard and layout checks exist, but full WCAG audit is pending.
     \item \textbf{Longitudinal reliability}: sustained uptime and drift metrics require longer operational observation.
+    \item \textbf{External provider dependency}: the hosted reminder path was configured, dry-run validated, and scheduled, but live email dispatch still depends on valid third-party provider credentials and sender verification.
 \end{enumerate}
 
 Residual risk is therefore concentrated in production-scale behaviour rather than core functional correctness. This distinction matters for dissertation claims: the project demonstrates robust implementation and test-backed behaviour for prototype scope, while appropriately reserving large-scale operational guarantees for future work.
@@ -1321,7 +1315,7 @@ The first research question evaluates whether the system helps learners capture,
     \item filterable, sortable, and recoverable workload management;
     \item schedule generation with two execution modes;
     \item conflict detection and explanatory responses;
-    \item proactive reminder generation with optional email delivery;
+    \item proactive reminder generation with configurable email delivery;
     \item adaptation after meaningful state changes.
 \end{itemize}
 This indicates that the system does more than record information. It actively supports learners in interpreting and reorganising academic work, although outcome quality still depends on the availability and accuracy of task metadata.
@@ -1334,10 +1328,10 @@ The second research question compares the agentic system with a non-agentic EDF 
     \item Scenario D: agent reduced conflict rate after dynamic addition (29.09\% vs 30.0\%)
 \end{itemize}
 
-Against existing passive support categories, the implemented prototype provides broader support coverage by combining persistent task context, schedule generation, adaptation, conflict detection, explanation, and proactive reminder capability. In other words, even where numerical scheduling uplift is modest, the system still differs materially from passive tools because it offers purposeful assistance rather than storage-only support.
+Against existing passive support categories, the implemented prototype provides broader support coverage by combining persistent task context, schedule generation, adaptation, conflict detection, explanation, and proactive reminder capability. In other words, even where numerical scheduling uplift is modest, the system still differs materially from passive tools because it offers active assistance rather than storage-only support.
 
 \subsubsection{RQ3: Architecture and Framework Suitability}
-The third question examines whether the selected architecture supports purposeful agentic behaviour while remaining reliable and testable. Implementation results support the earlier framework choice: LangGraph provided deterministic routing and inspectable state transitions for structured operations, while still allowing optional AI reasoning for natural-language interpretation, scheduling explanation, and advice.
+The third question examines whether the selected architecture supports active agentic behaviour while remaining reliable and testable. Implementation results support the earlier framework choice: LangGraph provided deterministic routing and inspectable state transitions for structured operations, while still allowing optional AI reasoning for natural-language interpretation, scheduling explanation, and advice.
 
 \subsubsection{RQ4: Use-Case Fulfilment Under Change}
 The fourth question assesses whether the prototype fulfils its defined use cases when circumstances change. The backend includes an adaptation workflow (\texttt{/api/schedule/adapt} and \texttt{adapt\_schedule\_to\_changes}) that can remove obsolete slots and regenerate plans.
@@ -1372,7 +1366,7 @@ UC4 & Adaptation is automatically triggered from meaningful UI-side mutations an
 \hline
 UC5 & Conflict warnings and explanatory AI responses provide actionable insight into workload and priorities. & Fulfilled \\
 \hline
-UC6 & Reminder generation and optional email delivery provide proactive support for approaching deadlines. & Fulfilled at prototype scope \\
+UC6 & Reminder generation and the configured hosted reminder path provide proactive support for approaching deadlines; external delivery remains configuration-dependent. & Fulfilled at prototype scope \\
 \hline
 \end{tabular}
 \caption{Evaluation of prototype fulfilment against defined learner-support use cases}
@@ -1568,11 +1562,11 @@ The comprehensive testing and validation approach provides a template for evalua
 
 The implemented system relates to several streams of prior research:
 
-Compared to classical AI planning systems \parencite{geffner2013concise,ghallab2016automated}, this implementation trades formal optimality guarantees for flexibility and ease of extension. Classical planners would provide stronger guarantees about schedule feasibility but would be more difficult to extend with natural language capabilities.
+Compared to classical AI planning systems \parencite{ghallab2016automated}, this implementation trades formal optimality guarantees for flexibility and ease of extension. Classical planners would provide stronger guarantees about schedule feasibility but would be more difficult to extend with natural language capabilities.
 
-Compared to pure LLM-based agents \parencite{sun2023adaplanner,yao2022react}, this implementation achieves greater efficiency and determinism through graph-based routing. The trade-off is reduced flexibility in handling novel, unstructured requests.
+Compared to pure LLM-based agents \parencite{wang2024survey}, this implementation achieves greater efficiency and determinism through graph-based routing. The trade-off is reduced flexibility in handling novel, unstructured requests.
 
-Compared to existing intelligent scheduling systems \parencite{chen2023survey}, this implementation provides greater transparency through explicit state management and graph-based routing. The system's behaviour is more inspectable than black-box ML approaches.
+Compared to existing end-user planning research prototypes \parencite{lee2025veriplan}, this implementation provides greater transparency through explicit state management and graph-based routing. The system's behaviour is more inspectable than black-box ML approaches.
 
 \subsection{Practical Implications for Learner-Support Systems}
 The discussion has direct implications for how similar systems should be designed in educational settings. First, reliability and user control are not optional enhancements; they are preconditions for trust. Learners rely on planning tools in high-pressure periods, and unpredictable behaviour can increase anxiety rather than reduce it. The implemented hybrid architecture addresses this by ensuring core operations remain deterministic while adaptation is bounded and explainable.
@@ -1622,14 +1616,10 @@ Another aspect of rigor is negative-result tolerance. The report includes challe
 
 The methodology also demonstrates iterative closure of earlier gaps. Features previously identified as partial (for example UI-level filtering/sorting depth, restore workflow exposure, adaptation trigger completeness, and session management NFR closure) were re-implemented and re-evaluated with explicit evidence. This progression reflects disciplined engineering iteration rather than static one-pass development.
 
-\subsection{Evaluation Against Handbook Expectations}
-The handbook expects a dissertation to present clear design rationale, implementation quality, critical evaluation, and defensible conclusions. The revised structure and expanded content address these expectations in three ways.
+\subsection{Evaluation Summary}
+The evaluation shows that the prototype is strongest where the problem requires connected support rather than single-feature automation. The system combines task capture, scheduling, conflict detection, reminders, and adaptation within one workflow, and this gives it a broader support role than passive planning tools.
 
-First, the report now follows a clear sequence from literature and technical review through methods, development/testing, outcomes analysis, discussion/evaluation, final conclusions, and future work. This sequence supports examiner readability and mirrors the recommended academic narrative.
-
-Second, the report foregrounds evidence quality. Implementation claims are coupled with testing and benchmark evidence; unverified areas are explicitly marked as future work. This helps avoid overstatement and supports objective marking.
-
-Third, the discussion explicitly weighs strengths against limitations and frames conclusions proportionately. The project is positioned as a robust prototype with meaningful research contribution, not a finished production platform. This positioning is appropriate for MSc scope and consistent with professional academic standards.
+The evidence is also bounded. The prototype was tested thoroughly at coursework scale, but it has not been validated as a large-scale production platform. Conclusions are therefore framed around prototype performance, implementation quality, and observed strengths and weaknesses rather than claims of complete operational maturity.
 
 \subsection{Discussion Summary}
 In summary, the project demonstrates that hybrid agentic architectures can provide practical value in structured planning domains when engineered with deterministic boundaries, explicit validation, recoverability, and measured adaptation pathways. The evaluation indicates context-dependent uplift, strongest under dynamic change conditions, and transparent boundary performance under severe constraints.
@@ -1646,9 +1636,9 @@ This dissertation has presented the design, implementation, and evaluation of an
 \begin{enumerate}
     \item \textbf{Systematic Framework Evaluation:} Three leading agentic AI frameworks (AutoGen, CrewAI, LangGraph) were evaluated against defined criteria. LangGraph was selected based on its state management capabilities, cost efficiency, and suitability for structured operations.
     
-    \item \textbf{Functional Prototype:} A complete prototype was implemented comprising a React frontend (Progressive Web App), Flask backend, PostgreSQL database, and LangGraph agent core. The system supports user management, token-secured task/schedule APIs, task CRUD with filter/sort and recovery, email reminders, and natural language interaction.
+    \item \textbf{Functional Prototype:} A complete prototype was implemented comprising a React frontend (Progressive Web App), Flask backend, PostgreSQL database, and LangGraph agent core. The system supports user management, token-secured task/schedule APIs, task CRUD with filter/sort and recovery, configurable reminder workflows, and natural language interaction.
     
-    \item \textbf{Email Reminder Capability:} A proactive reminder workflow was implemented so approaching deadlines can trigger reminder generation and optional email delivery through a configured provider. This is a core learner-support feature because it helps users follow through on planned work rather than only viewing stored tasks.
+    \item \textbf{Email Reminder Capability:} A proactive reminder workflow was implemented so approaching deadlines can trigger reminder generation and optional email delivery through a configured provider. In the final configuration pathway, reminder execution can be automated through a Supabase-hosted Edge Function and cron schedule. This hosted path was configured and validated through dry-run execution and scheduler registration. Where valid provider credentials and verified sender details are supplied, the same path can deliver transactional email. This is a core learner-support feature because it helps users follow through on planned work rather than only viewing stored tasks.
     
     \item \textbf{Natural Language Interface:} A conversational AI chat interface was implemented, enabling users to interact using everyday language (e.g., ``show my tasks'', ``mark all pending tasks as completed'', ``how can I manage deadlines better'') with personalised, human-friendly responses.
     
@@ -1680,7 +1670,7 @@ This subsection closes the project against the objectives stated in the introduc
 
 \textbf{Objective 5: Analyse strengths, limitations, and failure modes.} This objective was met through explicit limitation reporting, stress-scenario outcomes, and threat-to-validity analysis. Importantly, difficult results were retained and interpreted rather than excluded.
 
-\textbf{Objective 6: Produce a comprehensive research report.} This objective was met through the revised dissertation structure, expanded technical narrative, evidence mapping, and handbook-aligned organisation. The report now provides traceable linkage from motivation and literature through design, implementation, validation, outcomes, discussion, conclusions, and future work.
+\textbf{Objective 6: Produce a comprehensive research report.} This objective was met through the final report structure, expanded technical narrative, and evidence mapping. The report provides a direct link from motivation and literature through design, implementation, validation, outcomes, discussion, conclusions, and future work.
 
 Taken together, these closures indicate that the project has moved beyond proof-of-concept demonstration and reached a defensible MSc dissertation standard: implemented artefact, evaluative evidence, critical reflection, and bounded claims.
 
@@ -1701,11 +1691,11 @@ The appropriate academic claim is therefore that the project delivers an \textit
 Based on the project findings, the following recommendations are offered:
 
 \begin{enumerate}
-    \item \textbf{For Practitioners:} When implementing agentic AI systems for structured operations, consider graph-based frameworks like LangGraph that provide deterministic routing without mandatory LLM dependencies.
+    \item \textbf{For Practitioners:} When implementing agentic AI systems for structured operations, consider graph-based frameworks like LangGraph that provide deterministic routing without mandatory LLM dependencies \parencite{langgraph2024}.
     
-    \item \textbf{For Researchers:} The hybrid architecture pattern demonstrated here (graph-based determinism with optional AI enhancement) warrants further investigation across different application domains.
+    \item \textbf{For Researchers:} The hybrid architecture pattern demonstrated here (graph-based determinism with optional AI enhancement) warrants further investigation across different application domains \parencite{bandi2025rise}.
     
-    \item \textbf{For Framework Developers:} The evaluation highlights the value of cost-efficient, locally-runnable agent frameworks. Continued development of frameworks that support LLM-optional operation would benefit the community.
+    \item \textbf{For Framework Developers:} The evaluation highlights the value of cost-efficient, locally-runnable agent frameworks. Continued development of frameworks that support LLM-optional operation would benefit the community \parencite{langgraph2024}.
 \end{enumerate}
 
 \subsection{Extension Themes (Summary)}
@@ -1750,13 +1740,13 @@ The following features were successfully implemented during the project:
 
 \subsection{Closing Remarks}
 
-This project has demonstrated that agentic AI principles can be effectively applied to learner support through careful framework selection and architecture design. The LangGraph-based implementation provides a foundation for future enhancements while delivering immediate value through structured task management, input validation, scheduling support, and proactive reminder capabilities including email delivery.
+This project has demonstrated that agentic AI principles can be effectively applied to learner support through careful framework selection and architecture design. The LangGraph-based implementation provides a foundation for future enhancements while delivering immediate value through structured task management, input validation, scheduling support, and proactive reminder capabilities, including a configured hosted reminder path.
 
 The hybrid approach of combining deterministic graph-based routing with optional AI enhancement represents a pragmatic pattern for building effective agentic systems. As the field of agentic AI continues to evolve, the insights from this project contribute to the growing understanding of how to design and implement autonomous systems that balance capability, efficiency, and reliability. At dissertation scope, the correct interpretation is that the work has produced a tested, deployable prototype rather than a live production service.
 
 \section{Future Work}
 
-This research project contributes to understanding how agentic AI systems can handle constraint-based structured planning problems in learner-support settings. By designing and evaluating a prototypical learner-support system, the project provides empirical insights into the feasibility, strengths, and limitations of autonomous scheduling agents.
+This research project contributes to understanding how agentic AI systems can handle constraint-based structured planning problems in learner-support settings. By designing and evaluating a prototypical learner-support system, the project provides empirical insights into the feasibility, strengths, and limitations of autonomous scheduling agents \parencite{wang2024survey}.
 
 The anticipated contributions are:
 
@@ -1772,15 +1762,15 @@ The anticipated contributions are:
 
 Future directions for extending this work include
 \begin{enumerate}
-    \item Integration with real systems: future work could integrate the prototype with actual calendar applications or learning management systems, extending the supportive environment beyond the current standalone prototype.
+    \item Integration with real systems: future work could integrate the prototype with actual calendar applications or learning management systems, extending the supportive environment beyond the current standalone prototype \parencite{koedinger2010data}.
 
-    \item Multi-agent scenarios: exploring how multiple agentic support agents could coordinate when managing schedules for groups of learners or collaborative projects.
+    \item Multi-agent scenarios: exploring how multiple agentic support agents could coordinate when managing schedules for groups of learners or collaborative projects \parencite{autogen2023}.
 
-    \item Advanced planning techniques: incorporating more sophisticated planning algorithms (e.g., temporal planning, resource-constrained project scheduling) or learning-based approaches that improve over time.
+    \item Advanced planning techniques: incorporating more sophisticated planning algorithms (e.g., temporal planning, resource-constrained project scheduling) or learning-based approaches that improve over time \parencite{ghallab2016automated}.
 
-    \item Scalability evaluation: testing the prototype's performance with larger numbers of tasks (50+ tasks) or longer planning horizons (semester-level planning).
+    \item Scalability evaluation: testing the prototype's performance with larger numbers of tasks (50+ tasks) or longer planning horizons (semester-level planning) \parencite{lee2025veriplan}.
 
-    \item User preference learning: extending the agent to learn and adapt to individual user preferences and working patterns through interaction.
+    \item User preference learning: extending the agent to learn and adapt to individual user preferences and working patterns through interaction \parencite{wang2024survey}.
 \end{enumerate}
 
 \subsection{SLEP Considerations}
@@ -1788,6 +1778,7 @@ Future directions for extending this work include
 This section addresses the societal, legal, ethical and professional (SLEP) considerations that have been integrated into the design and implementation of the agentic AI learner-support prototype.
 
 \subsubsection{Societal Considerations}
+Recent work on agentic AI highlights the importance of human oversight, accessibility, and social impact when systems are deployed in user-facing support roles \parencite{hughes2025ai}.
 The system has been designed with accessibility and inclusivity in mind:
 \begin{itemize}
     \item \textbf{Learner autonomy}: The agent provides recommendations and suggestions rather than mandatory schedules, preserving user agency in the learning process. Users can accept, modify, or reject AI-generated plans.
@@ -1797,6 +1788,7 @@ The system has been designed with accessibility and inclusivity in mind:
 \end{itemize}
 
 \subsubsection{Legal Considerations}
+Legal and governance concerns for agentic systems include data minimisation, accountability, and careful control of external integrations \parencite{shavit2023practices}.
 Data privacy and protection have been addressed through several mechanisms:
 \begin{itemize}
     \item \textbf{Password-protected accounts}: User authentication with secure password hashing via \texttt{werkzeug.security} protects personal academic information.
@@ -1806,6 +1798,7 @@ Data privacy and protection have been addressed through several mechanisms:
 \end{itemize}
 
 \subsubsection{Ethical Considerations}
+Current guidance on agentic AI systems emphasises transparency, human oversight, and bounded autonomy as core ethical requirements \parencite{shavit2023practices}.
 Transparency and user control are central to the ethical design:
 \begin{itemize}
     \item \textbf{Explainable recommendations}: The AI provides human-friendly, personalised responses that explain why tasks are prioritised, using clear language and visual indicators (emojis, formatting) to communicate urgency and status.
@@ -1815,6 +1808,7 @@ Transparency and user control are central to the ethical design:
 \end{itemize}
 
 \subsubsection{Professional Considerations}
+Professional use of agentic systems requires clear role boundaries, reliable behaviour, and documented responsibility for system outputs \parencite{shavit2023practices}.
 The system aligns with academic and professional standards:
 \begin{itemize}
     \item \textbf{Academic integrity}: The prototype focuses on schedule management rather than content generation, ensuring it supports academic work without raising integrity concerns.

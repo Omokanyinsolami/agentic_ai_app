@@ -1,0 +1,26 @@
+create extension if not exists pg_cron;
+create extension if not exists pg_net;
+
+select cron.schedule(
+    'daily-deadline-reminders',
+    '0 7 * * *',
+    $$
+    select
+        net.http_post(
+            url := 'https://phaikbipdjgkeqijmyzd.supabase.co/functions/v1/deadline-reminders',
+            headers := jsonb_build_object(
+                'Content-Type', 'application/json',
+                'apikey', 'YOUR_SUPABASE_ANON_JWT_KEY',
+                'Authorization', 'Bearer ' || 'YOUR_SUPABASE_ANON_JWT_KEY'
+            ),
+            body := jsonb_build_object(
+                'days', 5,
+                'sendEmail', true
+            ),
+            timeout_milliseconds := 10000
+        );
+    $$
+);
+
+-- To disable the schedule later:
+-- select cron.unschedule((select jobid from cron.job where jobname = 'daily-deadline-reminders'));

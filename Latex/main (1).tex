@@ -489,17 +489,44 @@ Future directions for extending this work include
     \item User preference learning: extending the agent to learn and adapt to individual user preferences and working patterns through interaction.
 \end{enumerate}
 
-SLEP considerations:
+\subsection{SLEP Considerations}
 
-Although detailed societal, legal, ethical and professional (SLEP) analysis is outside the scope of this cw2 proposal, future work should address the following:
-\begin{enumerate}
-    \item Societal: impact of automated planning on student autonomy and learning skills; accessibility considerations for diverse student needs.
-    \item Legal: data privacy concerns if the system processes personal academic information; compliance with educational data protection regulations.
-    \item Ethical: bias in scheduling recommendations; transparency and user control over automated decisions; avoiding over-reliance on AI planning.
-    \item Professional: integration with academic integrity policies; appropriate use of AI tools in educational contexts.
-\end{enumerate}
+This section addresses the societal, legal, ethical and professional (SLEP) considerations that have been integrated into the design and implementation of the agentic AI study planner system.
 
-These SLEP considerations would be essential for any real-world deployment, but are noted here as important future research directions rather than the current project scope.
+\subsubsection{Societal Considerations}
+The system has been designed with accessibility and inclusivity in mind:
+\begin{itemize}
+    \item \textbf{Student autonomy}: The agent provides recommendations and suggestions rather than mandatory schedules, preserving student agency in their learning journey. Users can accept, modify, or reject AI-generated plans.
+    \item \textbf{Accessibility}: The Progressive Web App (PWA) implementation enables offline access and mobile-friendly interfaces, ensuring students can access their schedules regardless of connectivity or device constraints.
+    \item \textbf{Natural language interface}: The conversational chat interface reduces barriers to entry, allowing students to interact with the system using everyday language rather than requiring technical knowledge.
+    \item \textbf{Workload awareness}: The constraint satisfaction engine actively detects and warns about potential overload situations, promoting healthy study habits and work-life balance.
+\end{itemize}
+
+\subsubsection{Legal Considerations}
+Data privacy and protection have been addressed through several mechanisms:
+\begin{itemize}
+    \item \textbf{Password-protected accounts}: User authentication with secure password hashing (using industry-standard bcrypt via werkzeug.security) protects personal academic information.
+    \item \textbf{Email-based identification}: The system uses email addresses rather than institutional IDs, giving users control over their identity disclosure.
+    \item \textbf{Local data processing}: Task scheduling and AI reasoning occur locally within the system, minimising exposure of sensitive academic data to external services.
+    \item \textbf{GDPR alignment}: The system design supports data minimisation principles, collecting only information necessary for task management functionality.
+\end{itemize}
+
+\subsubsection{Ethical Considerations}
+Transparency and user control are central to the ethical design:
+\begin{itemize}
+    \item \textbf{Explainable recommendations}: The AI provides human-friendly, personalised responses that explain why tasks are prioritised, using clear language and visual indicators (emojis, formatting) to communicate urgency and status.
+    \item \textbf{Bias mitigation}: The constraint-based scheduling algorithm uses objective criteria (deadlines, estimated duration, user-defined priority) rather than subjective judgments that could introduce bias.
+    \item \textbf{User override capability}: Students retain full control over task creation, modification, and deletion, ensuring the AI assists rather than dictates.
+    \item \textbf{Avoiding over-reliance}: The system is designed as a supportive tool that enhances rather than replaces student planning skills, with prompts encouraging active engagement with task management.
+\end{itemize}
+
+\subsubsection{Professional Considerations}
+The system aligns with academic and professional standards:
+\begin{itemize}
+    \item \textbf{Academic integrity}: The planner focuses on schedule management rather than content generation, ensuring it supports academic work without raising integrity concerns.
+    \item \textbf{Professional development}: By teaching structured task management and deadline awareness, the system helps students develop transferable professional skills.
+    \item \textbf{Appropriate AI use}: The implementation demonstrates responsible AI deployment in educational contexts, with clear boundaries between AI assistance and student responsibility.
+\end{itemize}
 \newpage
 \addcontentsline{toc}{section}{References}
 \printbibliography

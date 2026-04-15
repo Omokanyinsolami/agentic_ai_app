@@ -11,13 +11,23 @@ from langgraph_agent import agent_workflow
 DEFAULT_LOOKAHEAD_DAYS = int(os.getenv("REMINDER_LOOKAHEAD_DAYS", "5"))
 
 
+def safe_print(message: str) -> None:
+    """Print reminder output without crashing on Windows codepage limitations."""
+    text = str(message)
+    encoding = getattr(sys.stdout, "encoding", None) or "utf-8"
+    try:
+        print(text)
+    except UnicodeEncodeError:
+        print(text.encode(encoding, errors="replace").decode(encoding, errors="replace"))
+
+
 def build_reminder_command(user_id: int, days: int, send_email: bool) -> str:
     send_email_value = "true" if send_email else "false"
     return f"reminders: user_id={user_id}; days={days}; send_email={send_email_value}"
 
 
 def find_users_with_due_tasks(days: int, user_ids: Iterable[int] | None = None) -> list[tuple[int, str, str]]:
-    """Return users who have incomplete tasks due within the reminder window."""
+    """Return users who have incomplete tasks due within the reminder window or already overdue."""
     today = date.today()
     cutoff = today + timedelta(days=days)
 
@@ -26,12 +36,12 @@ def find_users_with_due_tasks(days: int, user_ids: Iterable[int] | None = None) 
         FROM user_profiles up
         JOIN tasks t ON t.user_id = up.id
         WHERE t.deadline IS NOT NULL
-          AND t.deadline BETWEEN %s AND %s
+          AND t.deadline <= %s
           AND LOWER(COALESCE(t.status, 'pending')) NOT IN ('done', 'completed')
           AND (t.deleted = FALSE OR t.deleted IS NULL)
           AND COALESCE(TRIM(up.email), '') <> ''
     """
-    params: list[object] = [today.isoformat(), cutoff.isoformat()]
+    params: list[object] = [cutoff.isoformat()]
 
     normalized_user_ids = [int(user_id) for user_id in user_ids] if user_ids else []
     if normalized_user_ids:
@@ -52,14 +62,14 @@ def run_scheduled_reminders(days: int, send_email: bool, user_ids: Iterable[int]
     try:
         users = find_users_with_due_tasks(days=days, user_ids=user_ids)
     except Exception as exc:
-        print(f"[ERROR] Could not fetch users with due tasks: {exc}")
+        safe_print(f"[ERROR] Could not fetch users with due tasks: {exc}")
         return 1
 
     if not users:
-        print(f"[INFO] No users have incomplete tasks due within the next {days} day(s).")
+        safe_print(f"[INFO] No users have incomplete tasks due within the next {days} day(s) or already overdue.")
         return 0
 
-    print(f"[INFO] Found {len(users)} user(s) with tasks due within the next {days} day(s).")
+    safe_print(f"[INFO] Found {len(users)} user(s) with tasks due within the next {days} day(s) or already overdue.")
     failures = 0
 
     for user_id, name, email in users:
@@ -67,18 +77,18 @@ def run_scheduled_reminders(days: int, send_email: bool, user_ids: Iterable[int]
         try:
             result = agent_workflow(command)
             message = result["messages"][-1].content.strip()
-            print(f"[OK] user_id={user_id} name={name} email={email}")
-            print(message)
-            print("-" * 60)
+            safe_print(f"[OK] user_id={user_id} name={name} email={email}")
+            safe_print(message)
+            safe_print("-" * 60)
         except Exception as exc:
             failures += 1
-            print(f"[ERROR] Failed to process reminders for user_id={user_id} ({email}): {exc}")
+            safe_print(f"[ERROR] Failed to process reminders for user_id={user_id} ({email}): {exc}")
 
     if failures:
-        print(f"[WARN] Reminder run completed with {failures} failure(s).")
+        safe_print(f"[WARN] Reminder run completed with {failures} failure(s).")
         return 1
 
-    print("[INFO] Reminder run completed successfully.")
+    safe_print("[INFO] Reminder run completed successfully.")
     return 0
 
 
@@ -110,7 +120,7 @@ def parse_args() -> argparse.Namespace:
 if __name__ == "__main__":
     arguments = parse_args()
     if arguments.days < 0:
-        print("[ERROR] --days must be zero or greater.")
+        safe_print("[ERROR] --days must be zero or greater.")
         sys.exit(1)
 
     exit_code = run_scheduled_reminders(
